@@ -1,0 +1,461 @@
+// Schéma Prisma - EvalPro LMS lycée professionnel
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  ENSEIGNANT
+  ELEVE
+}
+
+enum TypeEvaluation {
+  DEVOIR_SURVEILLE
+  TRAVAUX_PRATIQUES
+  ORAL
+  PROJET
+  CCF
+}
+
+enum StatutEvaluation {
+  BROUILLON
+  PUBLIEE
+  CORRIGEE
+  ARCHIVEE
+}
+
+enum NiveauCompetence {
+  NON_ACQUIS
+  EN_COURS
+  ACQUIS
+  DEPASSE
+}
+
+enum StatutPfmp {
+  PLANIFIEE
+  EN_COURS
+  TERMINEE
+  VALIDEE
+}
+
+enum TypeAbsence {
+  ABSENCE
+  RETARD
+  EXCLUSION
+}
+
+model Utilisateur {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  motDePasse  String
+  prenom      String
+  nom         String
+  role        Role     @default(ELEVE)
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations enseignant
+  matieres          MatiereEnseignant[]
+  evaluationsCreees Evaluation[]        @relation("EvaluationCreateur")
+  historiquesNotes  HistoriqueNote[]    @relation("HistoriqueEnseignant")
+
+  // Relations élève
+  classe           ClasseEleve?
+  notes            Note[]
+  competencesEleve CompetenceEleve[]
+  certifications   Certification[]
+  soumissions      Soumission[]
+
+  // Commun
+  profil        Profil?
+  notifications Notification[]
+  pfmps            Pfmp[]    @relation("PfmpEleve")
+  absences         Absence[] @relation("AbsenceEleve")
+  absencesSaisies  Absence[] @relation("AbsenceEnseignant")
+
+  @@map("utilisateurs")
+}
+
+model Classe {
+  id        String   @id @default(cuid())
+  nom       String   @unique
+  niveau    String
+  annee     String
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  eleves      ClasseEleve[]
+  evaluations Evaluation[]
+  pfmps       Pfmp[]
+
+  @@map("classes")
+}
+
+model ClasseEleve {
+  id         String   @id @default(cuid())
+  eleveId    String   @unique
+  classeId   String
+  createdAt  DateTime @default(now())
+
+  eleve  Utilisateur @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  classe Classe      @relation(fields: [classeId], references: [id], onDelete: Cascade)
+
+  @@map("classe_eleves")
+}
+
+model Matiere {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  nom         String
+  description String?
+  coefficient Float    @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  enseignants  MatiereEnseignant[]
+  sequences    Sequence[]
+  competences  Competence[]
+  poles        Pole[]
+
+  @@map("matieres")
+}
+
+model Pole {
+  id        String   @id @default(cuid())
+  code      String
+  titre     String
+  ordre     Int      @default(0)
+  matiereId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  matiere     Matiere      @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+  competences Competence[]
+
+  @@map("poles")
+}
+
+model MatiereEnseignant {
+  id           String   @id @default(cuid())
+  enseignantId String
+  matiereId    String
+  createdAt    DateTime @default(now())
+
+  enseignant Utilisateur @relation(fields: [enseignantId], references: [id], onDelete: Cascade)
+  matiere    Matiere     @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+
+  @@unique([enseignantId, matiereId])
+  @@map("matiere_enseignants")
+}
+
+model Competence {
+  id          String   @id @default(cuid())
+  code        String
+  description String
+  matiereId   String
+  poleId      String?
+  ordre       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  matiere          Matiere                @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+  pole             Pole?                  @relation(fields: [poleId], references: [id], onDelete: SetNull)
+  competencesEleve CompetenceEleve[]
+  criteres         Critere[]
+  evaluations      EvaluationCompetence[]
+
+  @@unique([code, matiereId])
+  @@map("competences")
+}
+
+model EvaluationCompetence {
+  id           String   @id @default(cuid())
+  evaluationId String
+  competenceId String
+  createdAt    DateTime @default(now())
+
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  competence Competence @relation(fields: [competenceId], references: [id], onDelete: Cascade)
+
+  @@unique([evaluationId, competenceId])
+  @@map("evaluation_competences")
+}
+
+model Critere {
+  id           String   @id @default(cuid())
+  description  String
+  competenceId String
+  noteMax      Float    @default(20)
+  createdAt    DateTime @default(now())
+
+  competence Competence @relation(fields: [competenceId], references: [id], onDelete: Cascade)
+  notes      Note[]
+
+  @@map("criteres")
+}
+
+model CompetenceEleve {
+  id           String           @id @default(cuid())
+  eleveId      String
+  competenceId String
+  niveau       NiveauCompetence @default(NON_ACQUIS)
+  updatedAt    DateTime         @updatedAt
+
+  eleve      Utilisateur @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  competence Competence  @relation(fields: [competenceId], references: [id], onDelete: Cascade)
+
+  @@unique([eleveId, competenceId])
+  @@map("competences_eleves")
+}
+
+model Sequence {
+  id          String   @id @default(cuid())
+  titre       String
+  description String?
+  objectifs   String?
+  ordre       Int      @default(0)
+  matiereId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  matiere     Matiere      @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+  evaluations Evaluation[]
+
+  @@map("sequences")
+}
+
+model Evaluation {
+  id          String           @id @default(cuid())
+  titre       String
+  description String?
+  type        TypeEvaluation   @default(DEVOIR_SURVEILLE)
+  statut      StatutEvaluation @default(BROUILLON)
+  datePassage DateTime?
+  noteMax     Float            @default(20)
+  coefficient Float            @default(1)
+  sequenceId  String?
+  classeId    String
+  createurId  String
+  sujetNom    String?
+  sujetType   String?
+  sujetData   Bytes?
+  sujetTaille Int?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  sequence    Sequence?            @relation(fields: [sequenceId], references: [id])
+  classe      Classe               @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  createur    Utilisateur          @relation("EvaluationCreateur", fields: [createurId], references: [id])
+  notes       Note[]
+  historique  HistoriqueNote[]
+  soumissions Soumission[]
+  ccfDetail   CcfDetail?
+  competences EvaluationCompetence[]
+
+  @@map("evaluations")
+}
+
+model Note {
+  id           String   @id @default(cuid())
+  valeur       Float?
+  commentaire  String?
+  eleveId      String
+  evaluationId String
+  critereId    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  eleve      Utilisateur @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  evaluation Evaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  critere    Critere?    @relation(fields: [critereId], references: [id])
+
+  @@unique([eleveId, evaluationId, critereId])
+  @@map("notes")
+}
+
+// ─── Profil utilisateur ──────────────────────────────────────────────────────
+
+model Profil {
+  id           String   @id @default(cuid())
+  utilisateurId String  @unique
+  telephone    String?
+  adresse      String?
+  codePostal   String?
+  ville        String?
+  dateNaissance DateTime?
+  photoUrl     String?
+  bio          String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@map("profils")
+}
+
+// ─── Année de formation ───────────────────────────────────────────────────────
+
+model AnneeFormation {
+  id        String   @id @default(cuid())
+  libelle   String   @unique
+  debut     DateTime
+  fin       DateTime
+  actif     Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  certifications Certification[]
+
+  @@map("annees_formation")
+}
+
+// ─── Certification (pôles de compétences BAC PRO) ────────────────────────────
+
+model Certification {
+  id        String   @id @default(cuid())
+  eleveId   String
+  anneeId   String
+  poleData  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  eleve Utilisateur    @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  annee AnneeFormation @relation(fields: [anneeId], references: [id], onDelete: Cascade)
+
+  @@unique([eleveId, anneeId])
+  @@map("certifications")
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  titre     String
+  message   String
+  lue       Boolean  @default(false)
+  lueAt     DateTime?
+  createdAt DateTime @default(now())
+
+  utilisateur Utilisateur @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ─── Soumissions de fichiers par les élèves ───────────────────────────────────
+
+model Soumission {
+  id           String   @id @default(cuid())
+  evaluationId String
+  eleveId      String
+  fichierNom   String
+  fichierType  String
+  fichierData  Bytes
+  taille       Int
+  corrigeeIA   Boolean  @default(false)
+  resultatIA   Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  evaluation Evaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  eleve      Utilisateur @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+
+  @@unique([evaluationId, eleveId])
+  @@map("soumissions")
+}
+
+// ─── Absences et assiduité ────────────────────────────────────────────────────
+
+model Absence {
+  id           String      @id @default(cuid())
+  eleveId      String
+  enseignantId String?
+  date         DateTime
+  heureDebut   String?
+  heureFin     String?
+  dureeHeures  Float       @default(1)
+  type         TypeAbsence @default(ABSENCE)
+  motif        String?
+  justifiee    Boolean     @default(false)
+  justificatif String?
+  commentaire  String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  eleve      Utilisateur  @relation("AbsenceEleve",      fields: [eleveId],      references: [id], onDelete: Cascade)
+  enseignant Utilisateur? @relation("AbsenceEnseignant", fields: [enseignantId], references: [id])
+
+  @@map("absences")
+}
+
+// ─── PFMP (Périodes de Formation en Milieu Professionnel) ────────────────────
+
+model Pfmp {
+  id                     String     @id @default(cuid())
+  eleveId                String
+  classeId               String
+  numero                 Int        @default(1)
+  dateDebut              DateTime
+  dateFin                DateTime
+  entrepriseNom          String
+  entrepriseAdresse      String?
+  entrepriseSecteur      String?
+  tuteurNom              String?
+  tuteurEmail            String?
+  tuteurTelephone        String?
+  statut                 StatutPfmp @default(PLANIFIEE)
+  appreciationTuteur     String?
+  appreciationEnseignant String?
+  noteGlobale            Float?
+  semaines               Int?
+  competencesEvaluees    Json?
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+
+  eleve  Utilisateur @relation("PfmpEleve", fields: [eleveId],  references: [id], onDelete: Cascade)
+  classe Classe      @relation(fields: [classeId], references: [id], onDelete: Cascade)
+
+  @@map("pfmps")
+}
+
+// ─── CCF (Contrôle en Cours de Formation) — extension de Evaluation ──────────
+
+model CcfDetail {
+  id                 String    @id @default(cuid())
+  evaluationId       String    @unique
+  numSituation       Int       @default(1)
+  contexte           String?
+  competencesCiblees Json?
+  dateJury           DateTime?
+  observations       String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+
+  @@map("ccf_details")
+}
+
+// ─── Historique des modifications de notes ───────────────────────────────────
+
+model HistoriqueNote {
+  id           String   @id @default(cuid())
+  evaluationId String
+  enseignantId String
+  ancienneNote Float?
+  nouvelleNote Float?
+  motif        String
+  createdAt    DateTime @default(now())
+
+  evaluation Evaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  enseignant Utilisateur @relation("HistoriqueEnseignant", fields: [enseignantId], references: [id])
+
+  @@map("historique_notes")
+}

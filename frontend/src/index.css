@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+
+  /* Transition fluide sur tous les éléments lors du basculement de thème */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+
+  /* Exclure les animations Tailwind (spinners, etc.) */
+  .animate-spin,
+  .animate-spin *,
+  .animate-pulse,
+  .animate-pulse *,
+  .animate-bounce,
+  .animate-bounce * {
+    transition-property: none;
+  }
+}
+
+/* ─── Dark mode — overrides des classes neutres Tailwind ────────────── */
+
+.dark body {
+  background-color: rgb(15 23 42);   /* slate-950 */
+  color: rgb(248 250 252);           /* slate-50  */
+}
+
+/* Arrière-plans */
+.dark .bg-white        { background-color: rgb(30 41 59);   }   /* slate-800 */
+.dark .bg-gray-50      { background-color: rgb(15 23 42);   }   /* slate-950 */
+.dark .bg-gray-100     { background-color: rgb(51 65 85);   }   /* slate-700 */
+
+/* Textes */
+.dark .text-gray-900   { color: rgb(248 250 252); }  /* slate-50  */
+.dark .text-gray-800   { color: rgb(226 232 240); }  /* slate-200 */
+.dark .text-gray-700   { color: rgb(203 213 225); }  /* slate-300 */
+.dark .text-gray-600   { color: rgb(148 163 184); }  /* slate-400 */
+.dark .text-gray-500   { color: rgb(100 116 139); }  /* slate-500 */
+.dark .text-gray-400   { color: rgb(71  85  105); }  /* slate-600 */
+
+/* Bordures */
+.dark .border-gray-50  { border-color: rgb(30 41 59 / 0.5);  }
+.dark .border-gray-100 { border-color: rgb(51 65 85 / 0.5);  }
+.dark .border-gray-200 { border-color: rgb(71 85 105);       }
+
+/* Séparateurs (divide-*) */
+.dark .divide-gray-50  > * + * { border-color: rgb(30 41 59);       }
+.dark .divide-gray-100 > * + * { border-color: rgb(51 65 85 / 0.4); }
+
+/* Champs de saisie */
+.dark input:not([type='checkbox']):not([type='radio']):not([type='range']),
+.dark textarea,
+.dark select {
+  background-color: rgb(30 41 59);
+  color: rgb(248 250 252);
+  border-color: rgb(71 85 105);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgb(100 116 139);
+}
+
+/* Ombres renforcées en dark */
+.dark .shadow-sm { box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.4); }
+.dark .shadow    { box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.5); }
+.dark .shadow-lg { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5); }
+.dark .shadow-xl { box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.6); }
