@@ -1,5 +1,7 @@
 # EvalPro — LMS Lycée Professionnel
 
+[![Licence : MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](./LICENSE)
+
 Plateforme de gestion des évaluations et compétences pour lycée professionnel.
 
 ## Stack technique
