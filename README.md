@@ -82,3 +82,7 @@ evalpro/
         ├── App.jsx
         └── main.jsx
 ```
+
+## Licence
+
+Distribué sous licence MIT — voir [LICENSE](./LICENSE).
