@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Home, ClipboardList, Target, BarChart2, Sparkles,
   ScrollText, Settings, Users, GraduationCap,
-  CalendarDays, ClipboardCheck,
+  CalendarDays, ClipboardCheck, BookOpen,
   ChevronLeft, ChevronRight, ChevronDown, X, LogOut,
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -37,6 +37,7 @@ const NAV = {
         { label: 'Absences',  to: '/absences' },
       ],
     },
+    { label: 'Documentation', to: '/documentation', icon: BookOpen },
   ],
 
   ENSEIGNANT: [
@@ -76,6 +77,7 @@ const NAV = {
         { label: 'Compétences', to: '/competences'        },
       ],
     },
+    { label: 'Documentation', to: '/documentation', icon: BookOpen },
   ],
 
   ADMIN: [
@@ -98,6 +100,7 @@ const NAV = {
         { label: 'Années scolaires', to: '/annees'  },
       ],
     },
+    { label: 'Documentation', to: '/documentation', icon: BookOpen },
   ],
 };
 
