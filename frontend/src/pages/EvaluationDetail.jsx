@@ -771,7 +771,6 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
   const [modifie, setModifie]       = useState(false);
   const [sauvegarde, setSauvegarde] = useState(false);
   const [corrigeEnCours, setCorrigeEnCours] = useState(new Set());
-  const [criteresOuverts, setCriteresOuverts] = useState({});
   const [questionsOuvertes, setQuestionsOuvertes] = useState({});
   const [questions, setQuestions]   = useState({});
   const [genEnCours, setGenEnCours] = useState(null);
@@ -927,7 +926,6 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
           const resultatIA  = soumission?.resultatIA;
           const palier      = paliers[eleve.id] ?? null;
           const enCours     = soumission && corrigeEnCours.has(soumission.id);
-          const critOuverts = criteresOuverts[eleve.id];
           const qOuverts    = questionsOuvertes[eleve.id];
           const qEleve      = questions[eleve.id];
 
@@ -956,13 +954,6 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
                         <span className={`text-xs font-semibold ${MENTION_TC[resultatIA.mention] ?? 'text-gray-600'}`}>
                           {resultatIA.mention}
                         </span>
-                        <button
-                          onClick={() => setCriteresOuverts((p) => ({ ...p, [eleve.id]: !p[eleve.id] }))}
-                          className="flex items-center gap-0.5 text-xs text-indigo-600 hover:text-indigo-800"
-                        >
-                          {critOuverts ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                          {critOuverts ? 'Réduire' : 'Résumé'}
-                        </button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
@@ -1105,8 +1096,8 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
                   </div>
                 )}
 
-                {/* Résumé / détail IA (dépliable) */}
-                {critOuverts && resultatIA && (
+                {/* Résumé / détail IA — affiché automatiquement dès que la correction IA est disponible */}
+                {resultatIA && (
                   <div className="pt-3 border-t border-gray-100">
                     <AffichageResultatIA
                       resultat={resultatIA}

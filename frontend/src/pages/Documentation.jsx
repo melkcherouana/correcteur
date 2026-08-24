@@ -128,7 +128,7 @@ const GUIDES = [
         details: [
           "Ouvrez l'évaluation concernée depuis la liste.",
           'Cliquez sur chaque élève pour saisir son niveau par compétence, ou laissez l\'IA corriger un devoir déposé par l\'élève.',
-          'Ajoutez une appréciation textuelle et enregistrez.',
+          "L'appréciation générée par l'IA (note, points forts, axes d'amélioration) s'affiche automatiquement dès que la correction est disponible, sans clic supplémentaire.",
           'Publiez la correction pour que les élèves puissent consulter leurs résultats.',
         ],
       },
@@ -145,14 +145,16 @@ const GUIDES = [
       },
       {
         numero: 6,
-        titre: "Générer des situations pro avec l'IA",
+        titre: "Utiliser les outils IA (Cours IA)",
         icon: Sparkles,
         details: [
-          'Accédez à « Cours IA > Situations pro » dans le menu.',
-          'Sélectionnez les compétences cibles et décrivez le contexte professionnel.',
-          "L'IA génère une situation professionnelle complète adaptée à votre référentiel.",
-          'Modifiez, validez et exportez la situation générée en PDF ou Word.',
+          '« Séquences » organise votre progression pédagogique (aucune IA) ; « Situations pro » regroupe 7 générateurs IA de contenu, sans lien automatique avec vos séquences.',
+          '« Situations pro » : génère un dossier complet — contexte d\'entreprise, documents à lire, annexes à remplir (facture, fiche de stock, bon de livraison) — un cas pratique prêt à distribuer.',
+          '« Cours complet » : génère un cours structuré (plan + contenu détaillé) à partir d\'une compétence du référentiel — pour préparer une séance de cours.',
+          '« Support de travail » : génère un exercice ciblé avec corrigé, plus court qu\'un cours complet, sans le décor entreprise.',
+          '« Appréciation & Remédiation », « Questions d\'entretien », « Commentaire bulletin », « Compétences fragiles » : outils d\'analyse à partir des notes et compétences déjà enregistrées pour un élève.',
         ],
+        conseil: "« Situations pro » (dossier avec documents commerciaux) et « Cours complet » (cours magistral) sont les deux onglets les plus proches à distinguer : le premier simule un contexte d'entreprise, le second prépare une leçon.",
       },
       {
         numero: 7,
