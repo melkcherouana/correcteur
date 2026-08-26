@@ -37,27 +37,6 @@ async function main() {
   console.log(`✅ Enseignant  : ${enseignant.email}`);
 
 
-  // ─── Filières ──────────────────────────────────────────────────────────────
-
-  const filieres = await Promise.all([
-    prisma.filiere.upsert({
-      where: { code: 'EPC' },
-      update: {},
-      create: { code: 'EPC', nom: 'Électrotechnique', description: 'BAC PRO Électrotechnique, Énergie, Équipements Communicants' },
-    }),
-    prisma.filiere.upsert({
-      where: { code: 'MEI' },
-      update: {},
-      create: { code: 'MEI', nom: 'Maintenance Équipements Industriels', description: 'BAC PRO MEI' },
-    }),
-    prisma.filiere.upsert({
-      where: { code: 'COM' },
-      update: {},
-      create: { code: 'COM', nom: 'Commerce', description: 'BAC PRO Métiers du Commerce et de la Vente' },
-    }),
-  ]);
-  console.log(`\n✅ Filières    : ${filieres.map((f) => f.code).join(', ')}`);
-
   // ─── Année scolaire ────────────────────────────────────────────────────────
 
   const annee = await prisma.anneeFormation.upsert({
@@ -80,20 +59,19 @@ async function main() {
   // ─── Classes ───────────────────────────────────────────────────────────────
 
   const classesData = [
-    { nom: '1EPC A', niveau: '1', filiereCode: 'EPC' },
-    { nom: '2EPC A', niveau: '2', filiereCode: 'EPC' },
-    { nom: '3EPC A', niveau: '3', filiereCode: 'EPC' },
-    { nom: '1MEI A', niveau: '1', filiereCode: 'MEI' },
-    { nom: '2COM A', niveau: '2', filiereCode: 'COM' },
+    { nom: '1EPC A', niveau: '1' },
+    { nom: '2EPC A', niveau: '2' },
+    { nom: '3EPC A', niveau: '3' },
+    { nom: '1MEI A', niveau: '1' },
+    { nom: '2COM A', niveau: '2' },
   ];
 
   const classesCreees = [];
   for (const cd of classesData) {
-    const filiere = filieres.find((f) => f.code === cd.filiereCode);
     const cls = await prisma.classe.upsert({
       where: { nom: cd.nom },
       update: { actif: true },
-      create: { nom: cd.nom, niveau: cd.niveau, annee: annee.libelle, filiereId: filiere.id },
+      create: { nom: cd.nom, niveau: cd.niveau, annee: annee.libelle },
     });
     classesCreees.push(cls);
   }

@@ -85,6 +85,17 @@ evalpro/
         └── main.jsx
 ```
 
+## Déploiement
+
+L'app se déploie sur [Render](https://render.com) via le Blueprint `render.yaml` à la racine : un service web Node (`evalpro-api`) et un site statique (`evalpro-app`).
+
+1. Sur Render : **New → Blueprint**, connecter le dépôt GitHub. Render détecte `render.yaml` et crée les deux services.
+2. Renseigner les variables marquées `sync: false` dans le dashboard (jamais commitées) :
+   - `evalpro-api` : `DATABASE_URL`, `DIRECT_URL` (base Postgres — pooler transaction/session si Supabase), `JWT_SECRET` (secret aléatoire fort), `ANTHROPIC_API_KEY`, `FRONTEND_URL` (URL du site statique une fois déployé)
+   - `evalpro-app` : `VITE_API_URL` (URL de `evalpro-api` + `/api`)
+3. Au premier déploiement de `evalpro-api`, `npm start` exécute automatiquement `prisma migrate deploy` avant de lancer le serveur.
+4. Peupler la base avec `npm run db:seed` (à exécuter une fois, en pointant `DATABASE_URL`/`DIRECT_URL` vers la base de prod) pour obtenir les comptes de démo.
+
 ## Licence
 
 Distribué sous licence MIT — voir [LICENSE](./LICENSE).
