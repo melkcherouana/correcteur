@@ -821,7 +821,7 @@ function OngletScenario() {
                               onChange={() => toggleCompetence(c.id)}
                               className="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
                             />
-                            <span className="text-xs font-mono font-bold text-indigo-500 mt-0.5 flex-shrink-0 w-10">{c.code}</span>
+                            <span className="text-xs font-mono font-bold text-indigo-500 mt-0.5 flex-shrink-0 min-w-10">{c.code}</span>
                             <span className={`text-xs leading-relaxed ${competencesSelectionnees.includes(c.id) ? 'text-indigo-900 font-medium' : 'text-gray-600'}`}>
                               {c.description}
                             </span>
@@ -843,7 +843,7 @@ function OngletScenario() {
                           <input type="checkbox" checked={competencesSelectionnees.includes(c.id)}
                             onChange={() => toggleCompetence(c.id)}
                             className="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0" />
-                          <span className="text-xs font-mono font-bold text-indigo-500 mt-0.5 flex-shrink-0 w-10">{c.code}</span>
+                          <span className="text-xs font-mono font-bold text-indigo-500 mt-0.5 flex-shrink-0 min-w-10">{c.code}</span>
                           <span className="text-xs text-gray-600 leading-relaxed">{c.description}</span>
                         </label>
                       ))}
