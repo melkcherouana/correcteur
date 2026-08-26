@@ -125,7 +125,7 @@ export default function Login() {
         </div>
 
         <p className="text-center text-xs text-slate-500 mt-6">
-          EvalPro © 2026 — Plateforme interne
+          EvalPro © 2026
         </p>
       </div>
     </div>

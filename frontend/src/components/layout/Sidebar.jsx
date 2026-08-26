@@ -267,28 +267,40 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapsed })
       >
         {/* ─── Logo ─── */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-700/50 flex-shrink-0">
-          <div className={clsx('flex items-center gap-2 overflow-hidden', collapsed && 'lg:hidden')}>
+          {/* Toute la zone (icône logo → chevron) replie/déploie la barre, en desktop uniquement */}
+          <button
+            type="button"
+            onClick={onToggleCollapsed}
+            title={collapsed ? 'Développer la barre' : 'Réduire la barre'}
+            className="hidden lg:flex items-center justify-between flex-1 gap-2 overflow-hidden cursor-pointer"
+          >
+            <div className={clsx('flex items-center gap-2 overflow-hidden', collapsed && 'lg:hidden')}>
+              <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                <GraduationCap className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-bold text-white text-lg whitespace-nowrap">EvalPro</span>
+            </div>
+
+            <div className={clsx('hidden', collapsed && 'lg:flex items-center justify-center flex-1')}>
+              <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+                <GraduationCap className="w-4 h-4 text-white" />
+              </div>
+            </div>
+
+            <span className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors flex-shrink-0">
+              {collapsed
+                ? <ChevronRight className="w-4 h-4" />
+                : <ChevronLeft  className="w-4 h-4" />}
+            </span>
+          </button>
+
+          {/* Mobile : logo simple, pas de repli (le collapse n'existe qu'en desktop) */}
+          <div className="flex lg:hidden items-center gap-2 overflow-hidden">
             <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
               <GraduationCap className="w-4 h-4 text-white" />
             </div>
             <span className="font-bold text-white text-lg whitespace-nowrap">EvalPro</span>
           </div>
-
-          <div className={clsx('hidden', collapsed && 'lg:flex items-center justify-center')}>
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-              <GraduationCap className="w-4 h-4 text-white" />
-            </div>
-          </div>
-
-          <button
-            onClick={onToggleCollapsed}
-            title={collapsed ? 'Développer la barre' : 'Réduire la barre'}
-            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors flex-shrink-0"
-          >
-            {collapsed
-              ? <ChevronRight className="w-4 h-4" />
-              : <ChevronLeft  className="w-4 h-4" />}
-          </button>
 
           <button onClick={onClose} className="lg:hidden text-slate-400 hover:text-white">
             <X className="w-5 h-5" />
