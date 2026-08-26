@@ -309,7 +309,7 @@ export default function SequenceDetail() {
               <div key={comp.id}
                 className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition-colors">
                 <Target className="w-3.5 h-3.5 text-indigo-500 mt-0.5 flex-shrink-0" />
-                <span className="font-mono text-xs text-indigo-600 font-bold flex-shrink-0 mt-0.5 w-16">{comp.code}</span>
+                <span className="font-mono text-xs text-indigo-600 font-bold flex-shrink-0 mt-0.5 min-w-16">{comp.code}</span>
                 <p className="text-sm text-slate-700">{comp.description}</p>
                 {comp.criteres.length > 0 && (
                   <span className="text-xs text-slate-400 flex-shrink-0">{comp.criteres.length} critère{comp.criteres.length > 1 ? 's' : ''}</span>

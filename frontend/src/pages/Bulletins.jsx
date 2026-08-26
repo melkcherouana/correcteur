@@ -384,7 +384,7 @@ function BulletinEleve({ eleveId, peutGenererCommentaire = false }) {
                     <ul className="divide-y divide-slate-100">
                       {pm.competences.map((ce) => (
                         <li key={ce.id} className="flex items-start gap-3 px-4 py-2.5">
-                          <span className="font-mono text-xs text-indigo-600 font-bold mt-0.5 flex-shrink-0 w-16">
+                          <span className="font-mono text-xs text-indigo-600 font-bold mt-0.5 flex-shrink-0 min-w-16">
                             {ce.competence.code}
                           </span>
                           <p className="flex-1 text-sm text-slate-700 min-w-0">
