@@ -23,8 +23,15 @@ export const lister = async (req, res, next) => {
       effectiveClasseId = ce?.classeId;
     }
 
+    // Un enseignant ne voit par défaut que ses propres évaluations — l'app
+    // n'a pas de notion d'affectation enseignant↔classe, sans ce filtre il
+    // verrait le travail de tous les enseignants de l'établissement mélangé.
+    // L'admin garde une vue complète (aucun filtre appliqué).
+    const effectiveCreateurId =
+      req.utilisateur.role === 'ENSEIGNANT' && !createurId ? req.utilisateur.id : createurId;
+
     res.json(await svc.listerEvaluations({
-      classeId: effectiveClasseId, sequenceId, type, statut, createurId,
+      classeId: effectiveClasseId, sequenceId, type, statut, createurId: effectiveCreateurId,
       eleveId: req.utilisateur.role === 'ELEVE' ? req.utilisateur.id : undefined,
       page:   page   ? parseInt(page)   : 1,
       limite: limite ? parseInt(limite) : 20,

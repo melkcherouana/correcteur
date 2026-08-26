@@ -73,15 +73,15 @@ function DashboardEnseignant() {
       loading: classesQ.isLoading,
     },
     {
-      titre: 'Évaluations',
+      titre: 'Mes évaluations',
       valeur: evalsQ.data?.total ?? '—',
-      sousTitre: 'au total',
+      sousTitre: 'créées par vous',
       icone: ClipboardList,
       couleur: 'bg-amber-500',
       loading: evalsQ.isLoading,
     },
     {
-      titre: 'Évals corrigées',
+      titre: 'Mes évals corrigées',
       valeur: evalsCorrigeesQ.data?.total ?? '—',
       sousTitre: 'notes saisies',
       icone: CheckCircle2,

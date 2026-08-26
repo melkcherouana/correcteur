@@ -144,7 +144,12 @@ function ModalCreerUtilisateur({ onFermer }) {
 
   const mutation = useMutation({
     mutationFn: (data) => api.post('/users', { ...data, classeId: classeId || undefined }).then((r) => r.data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); reset(); onFermer(); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      qc.invalidateQueries({ queryKey: ['classes'] });
+      qc.invalidateQueries({ queryKey: ['classe'] });
+      reset(); onFermer();
+    },
   });
 
   return (
@@ -263,7 +268,12 @@ function ModalModifierUtilisateur({ utilisateur: u, onFermer }) {
         await api.patch(`/users/${u.id}/classe`, { classeId: classeId || null });
       }
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); onFermer(); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      qc.invalidateQueries({ queryKey: ['classes'] });
+      qc.invalidateQueries({ queryKey: ['classe'] });
+      onFermer();
+    },
   });
 
   return (
@@ -388,7 +398,11 @@ function ModalImportUtilisateurs({ onFermer }) {
       form.append('fichier', file);
       return api.post('/users/import', form, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      qc.invalidateQueries({ queryKey: ['classes'] });
+      qc.invalidateQueries({ queryKey: ['classe'] });
+    },
   });
 
   const choisirFichier = (f) => {
@@ -748,12 +762,27 @@ export default function Users() {
 
   const changerRoleMutation = useMutation({
     mutationFn: ({ id, role }) => api.patch(`/users/${id}/role`, { role }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); setRoleEnEdition(null); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      // Un rôle qui quitte ELEVE désinscrit automatiquement l'utilisateur
+      // de sa classe côté backend — les caches classes/classe doivent suivre.
+      qc.invalidateQueries({ queryKey: ['classes'] });
+      qc.invalidateQueries({ queryKey: ['classe'] });
+      setRoleEnEdition(null);
+    },
   });
 
   const changerClasseMutation = useMutation({
     mutationFn: ({ id, classeId }) => api.patch(`/users/${id}/classe`, { classeId }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); setClasseEnEdition(null); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      // La liste des classes (effectifs) et le détail d'une classe (roster)
+      // ont leurs propres caches — sans ça, ils restent affichés à
+      // l'ancien état tant que la page n'est pas rechargée manuellement.
+      qc.invalidateQueries({ queryKey: ['classes'] });
+      qc.invalidateQueries({ queryKey: ['classe'] });
+      setClasseEnEdition(null);
+    },
   });
 
   const toggleActifMutation = useMutation({
