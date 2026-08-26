@@ -769,7 +769,7 @@ function OngletScenario() {
             <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
               <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Compétences à mobiliser (optionnel)</p>
               {competencesSelectionnees.length > 0 && (
-                <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/40 px-2 py-0.5 rounded-full">
                   {competencesSelectionnees.length} sélectionnée{competencesSelectionnees.length > 1 ? 's' : ''}
                 </span>
               )}
@@ -795,10 +795,10 @@ function OngletScenario() {
                           onClick={() => toutSelectionnerPole(pole.competences ?? [])}
                           className={[
                             'w-full flex items-center gap-2 px-3 py-2 text-left transition-colors',
-                            tousSelectionnes ? 'bg-indigo-600 text-white' : certSelectionnes ? 'bg-indigo-50 text-indigo-800' : 'bg-gray-50 text-gray-700 hover:bg-gray-100',
+                            tousSelectionnes ? 'bg-indigo-600 text-white' : certSelectionnes ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300' : 'bg-gray-50 text-gray-700 hover:bg-gray-100',
                           ].join(' ')}
                         >
-                          <span className={`text-xs font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${tousSelectionnes ? 'bg-white/20 text-white' : 'bg-indigo-100 text-indigo-700'}`}>
+                          <span className={`text-xs font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${tousSelectionnes ? 'bg-white/20 text-white' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300'}`}>
                             {pole.code}
                           </span>
                           <span className="text-xs font-semibold flex-1 truncate">{pole.titre}</span>
@@ -813,7 +813,7 @@ function OngletScenario() {
                         {(pole.competences ?? []).map((c) => (
                           <label key={c.id} className={[
                             'flex items-start gap-2.5 px-3 py-1.5 cursor-pointer border-t border-gray-50 transition-colors',
-                            competencesSelectionnees.includes(c.id) ? 'bg-indigo-50' : 'hover:bg-gray-50',
+                            competencesSelectionnees.includes(c.id) ? 'bg-indigo-50 dark:bg-indigo-900/30' : 'hover:bg-gray-50',
                           ].join(' ')}>
                             <input
                               type="checkbox"
@@ -822,7 +822,7 @@ function OngletScenario() {
                               className="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
                             />
                             <span className="text-xs font-mono font-bold text-indigo-500 mt-0.5 flex-shrink-0 min-w-10">{c.code}</span>
-                            <span className={`text-xs leading-relaxed ${competencesSelectionnees.includes(c.id) ? 'text-indigo-900 font-medium' : 'text-gray-600'}`}>
+                            <span className={`text-xs leading-relaxed ${competencesSelectionnees.includes(c.id) ? 'text-indigo-900 dark:text-indigo-200 font-medium' : 'text-gray-600'}`}>
                               {c.description}
                             </span>
                           </label>
@@ -838,7 +838,7 @@ function OngletScenario() {
                       {arborescence.competences.map((c) => (
                         <label key={c.id} className={[
                           'flex items-start gap-2.5 px-3 py-1.5 cursor-pointer border-t border-gray-50 transition-colors',
-                          competencesSelectionnees.includes(c.id) ? 'bg-indigo-50' : 'hover:bg-gray-50',
+                          competencesSelectionnees.includes(c.id) ? 'bg-indigo-50 dark:bg-indigo-900/30' : 'hover:bg-gray-50',
                         ].join(' ')}>
                           <input type="checkbox" checked={competencesSelectionnees.includes(c.id)}
                             onChange={() => toggleCompetence(c.id)}

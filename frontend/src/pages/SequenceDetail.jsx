@@ -307,10 +307,10 @@ export default function SequenceDetail() {
           <div className="space-y-1.5">
             {seq.matiere.competences.map(comp => (
               <div key={comp.id}
-                className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition-colors">
+                className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                 <Target className="w-3.5 h-3.5 text-indigo-500 mt-0.5 flex-shrink-0" />
-                <span className="font-mono text-xs text-indigo-600 font-bold flex-shrink-0 mt-0.5 min-w-16">{comp.code}</span>
-                <p className="text-sm text-slate-700">{comp.description}</p>
+                <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold flex-shrink-0 mt-0.5 min-w-16">{comp.code}</span>
+                <p className="text-sm text-slate-700 dark:text-slate-300">{comp.description}</p>
                 {comp.criteres.length > 0 && (
                   <span className="text-xs text-slate-400 flex-shrink-0">{comp.criteres.length} critère{comp.criteres.length > 1 ? 's' : ''}</span>
                 )}

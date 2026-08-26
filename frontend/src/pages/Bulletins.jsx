@@ -11,10 +11,10 @@ import {
 } from 'recharts';
 
 const NIVEAU_COULEUR = {
-  NON_ACQUIS: 'bg-red-100 text-red-700',
-  EN_COURS: 'bg-yellow-100 text-yellow-700',
-  ACQUIS: 'bg-green-100 text-green-700',
-  DEPASSE: 'bg-indigo-100 text-indigo-700',
+  NON_ACQUIS: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+  EN_COURS: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
+  ACQUIS: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
+  DEPASSE: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300',
 };
 const NIVEAU_LABEL = {
   NON_ACQUIS: 'Non acquis',
@@ -360,20 +360,20 @@ function BulletinEleve({ eleveId, peutGenererCommentaire = false }) {
       {/* Compétences */}
       {competencesParMatiere.length > 0 && (
         <div>
-          <h3 className="font-semibold text-slate-800 mb-3">Compétences par matière</h3>
+          <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-3">Compétences par matière</h3>
           <div className="space-y-2">
             {competencesParMatiere.map((pm) => {
               const ouvert = polesOuverts[pm.matiere.id] ?? true;
               return (
-                <div key={pm.matiere.id} className="rounded-xl border border-slate-200 overflow-hidden">
+                <div key={pm.matiere.id} className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                   <button
                     onClick={() => togglePole(pm.matiere.id)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs text-indigo-600 font-bold">{pm.matiere.code}</span>
-                      <span className="font-medium text-slate-800">{pm.matiere.nom}</span>
-                      <span className="text-xs text-green-600 font-medium">
+                      <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold">{pm.matiere.code}</span>
+                      <span className="font-medium text-slate-800 dark:text-slate-100">{pm.matiere.nom}</span>
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
                         {pm.stats.ACQUIS + pm.stats.DEPASSE}/{pm.competences.length}
                       </span>
                     </div>
@@ -381,13 +381,13 @@ function BulletinEleve({ eleveId, peutGenererCommentaire = false }) {
                   </button>
 
                   {ouvert && (
-                    <ul className="divide-y divide-slate-100">
+                    <ul className="divide-y divide-slate-100 dark:divide-slate-700">
                       {pm.competences.map((ce) => (
                         <li key={ce.id} className="flex items-start gap-3 px-4 py-2.5">
-                          <span className="font-mono text-xs text-indigo-600 font-bold mt-0.5 flex-shrink-0 min-w-16">
+                          <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold mt-0.5 flex-shrink-0 min-w-16">
                             {ce.competence.code}
                           </span>
-                          <p className="flex-1 text-sm text-slate-700 min-w-0">
+                          <p className="flex-1 text-sm text-slate-700 dark:text-slate-300 min-w-0">
                             {ce.competence.description}
                           </p>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${NIVEAU_COULEUR[ce.niveau]}`}>
