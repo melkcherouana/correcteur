@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import multer from 'multer';
 import * as ctrl from '../controllers/evaluations.controller.js';
-import * as notesCtrl from '../controllers/notes.controller.js';
 import * as soumCtrl from '../controllers/soumissions.controller.js';
 import { verifierToken, autoriser } from '../middlewares/auth.js';
 

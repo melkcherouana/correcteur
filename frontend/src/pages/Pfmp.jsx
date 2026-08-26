@@ -6,7 +6,7 @@ import { fr } from 'date-fns/locale';
 import { Building2, Plus, ChevronRight, Calendar, Loader2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
-import Card, { CardHeader } from '../components/ui/Card.jsx';
+import Card from '../components/ui/Card.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
 const STATUT_STYLE = {

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BookMarked, Plus, ChevronRight, GripVertical, ArrowUp, ArrowDown, X, Loader2 } from 'lucide-react';
+import { BookMarked, Plus, ChevronRight, ArrowUp, ArrowDown, X, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
-import Card, { CardHeader } from '../components/ui/Card.jsx';
+import Card from '../components/ui/Card.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
 // ─── Formulaire création ──────────────────────────────────────────────────────

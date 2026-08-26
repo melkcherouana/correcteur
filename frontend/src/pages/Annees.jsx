@@ -8,7 +8,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import api from '../services/api.js';
-import Card, { CardHeader } from '../components/ui/Card.jsx';
+import Card from '../components/ui/Card.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
 function ModalCreerAnnee({ onFermer }) {
