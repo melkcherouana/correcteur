@@ -30,6 +30,16 @@ export const login = async (req, res, next) => {
   }
 };
 
+export const reinitialiserMotDePasse = async (req, res, next) => {
+  if (!validerRequete(req, res)) return;
+  try {
+    await authService.reinitialiserMotDePasse(req.body);
+    res.json({ message: 'Mot de passe mis à jour' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const me = async (req, res, next) => {
   try {
     const utilisateur = await authService.moi(req.utilisateur.id);

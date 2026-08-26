@@ -67,6 +67,13 @@ export const reactiver = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+export const genererLienReset = async (req, res, next) => {
+  try {
+    const token = await usersService.genererLienReset(req.params.id);
+    res.json({ token });
+  } catch (err) { next(err); }
+};
+
 export const supprimerDefinitivement = async (req, res, next) => {
   try {
     await usersService.supprimerDefinitivement(req.params.id);

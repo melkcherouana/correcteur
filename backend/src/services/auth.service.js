@@ -1,8 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import prisma from '../utils/prisma.js';
 
 const SALT_ROUNDS = 12;
+const RESET_TOKEN_VALIDITE_MS = 24 * 60 * 60 * 1000;
 
 const genererToken = (u) =>
   jwt.sign(
@@ -42,6 +44,43 @@ export const connecter = async ({ email, motDePasse }) => {
   if (!valide) throw errAuth;
 
   return { utilisateur: sansMdp(utilisateur), token: genererToken(utilisateur) };
+};
+
+// Génère un lien de réinitialisation pour un utilisateur (déclenché par l'admin,
+// pas d'envoi d'email — cf. flux "mot de passe oublié" médié par l'admin).
+// Le token en clair n'est retourné qu'ici, jamais stocké tel quel en base.
+export const genererResetToken = async (id) => {
+  const utilisateur = await prisma.utilisateur.findUnique({ where: { id } });
+  if (!utilisateur) {
+    throw Object.assign(new Error('Utilisateur introuvable'), { status: 404 });
+  }
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+  await prisma.utilisateur.update({
+    where: { id },
+    data: { resetTokenHash, resetTokenExpiresAt: new Date(Date.now() + RESET_TOKEN_VALIDITE_MS) },
+  });
+
+  return token;
+};
+
+export const reinitialiserMotDePasse = async ({ token, motDePasse }) => {
+  const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+  const utilisateur = await prisma.utilisateur.findFirst({
+    where: { resetTokenHash, resetTokenExpiresAt: { gt: new Date() } },
+  });
+  if (!utilisateur) {
+    throw Object.assign(new Error('Lien invalide ou expiré'), { status: 400 });
+  }
+
+  const hash = await bcrypt.hash(motDePasse, SALT_ROUNDS);
+  await prisma.utilisateur.update({
+    where: { id: utilisateur.id },
+    data: { motDePasse: hash, resetTokenHash: null, resetTokenExpiresAt: null },
+  });
 };
 
 export const moi = async (id) => {

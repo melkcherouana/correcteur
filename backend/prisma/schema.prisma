@@ -62,6 +62,9 @@ model Utilisateur {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  resetTokenHash      String?
+  resetTokenExpiresAt DateTime?
+
   // Relations enseignant
   matieres          MatiereEnseignant[]
   evaluationsCreees Evaluation[]        @relation("EvaluationCreateur")

@@ -23,6 +23,13 @@ router.post(
   authController.login
 );
 
+router.post(
+  '/reinitialiser-mot-de-passe',
+  body('token').notEmpty().withMessage('Token requis'),
+  body('motDePasse').isLength({ min: 8 }).withMessage('Le mot de passe doit contenir au moins 8 caractères'),
+  authController.reinitialiserMotDePasse
+);
+
 router.get('/me', verifierToken, authController.me);
 
 export default router;

@@ -118,6 +118,10 @@ export default function Login() {
               {chargement ? 'Connexion…' : 'Se connecter'}
             </button>
           </form>
+
+          <p className="text-center text-xs text-gray-400 mt-5">
+            Mot de passe oublié ? Contactez l'administration de votre établissement.
+          </p>
         </div>
 
         <p className="text-center text-xs text-slate-500 mt-6">

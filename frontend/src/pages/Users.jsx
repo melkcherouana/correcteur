@@ -594,8 +594,15 @@ function ModalImportUtilisateurs({ onFermer }) {
 
 function LigneUtilisateur({ u, classesDisponibles, roleEnEdition, setRoleEnEdition, classeEnEdition, setClasseEnEdition, changerRoleMutation, changerClasseMutation, toggleActifMutation, reactiverMutation, supprimerMutation, onEditer }) {
   const [confirmSuppr, setConfirmSuppr] = useState(false);
+  const [lienReset, setLienReset] = useState(null);
+
+  const genererLienMutation = useMutation({
+    mutationFn: () => api.post(`/users/${u.id}/reset-password-lien`).then((r) => r.data),
+    onSuccess: (data) => setLienReset(`${window.location.origin}/reinitialiser-mot-de-passe?token=${data.token}`),
+  });
 
   return (
+    <>
     <tr className="hover:bg-gray-50/50 dark:hover:bg-slate-700/30">
       {/* Identité */}
       <td className="px-4 py-2.5">
@@ -690,6 +697,9 @@ function LigneUtilisateur({ u, classesDisponibles, roleEnEdition, setRoleEnEditi
             <button onClick={() => onEditer(u)} title="Modifier le profil" className="p-1.5 rounded-lg text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 transition-colors">
               <Pencil className="w-3.5 h-3.5" />
             </button>
+            <button onClick={() => genererLienMutation.mutate()} title="Générer un lien de réinitialisation" className="p-1.5 rounded-lg text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 transition-colors">
+              <Lock className="w-3.5 h-3.5" />
+            </button>
             <span
               title="Compte administrateur protégé — suppression et désactivation impossibles"
               className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 dark:text-slate-500 bg-gray-50 dark:bg-slate-700/50 rounded-lg select-none"
@@ -718,6 +728,9 @@ function LigneUtilisateur({ u, classesDisponibles, roleEnEdition, setRoleEnEditi
             <button onClick={() => onEditer(u)} title="Modifier le compte" className="p-1.5 rounded-lg text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 transition-colors">
               <Pencil className="w-3.5 h-3.5" />
             </button>
+            <button onClick={() => genererLienMutation.mutate()} title="Générer un lien de réinitialisation" className="p-1.5 rounded-lg text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 transition-colors">
+              <Lock className="w-3.5 h-3.5" />
+            </button>
             {u.actif ? (
               <button onClick={() => toggleActifMutation.mutate(u.id)} title="Désactiver le compte" className="p-1.5 rounded-lg text-gray-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 hover:text-amber-500 transition-colors">
                 <UserX className="w-3.5 h-3.5" />
@@ -734,6 +747,55 @@ function LigneUtilisateur({ u, classesDisponibles, roleEnEdition, setRoleEnEditi
         )}
       </td>
     </tr>
+    {lienReset && <ModalLienReset lien={lienReset} onFermer={() => setLienReset(null)} />}
+    </>
+  );
+}
+
+/* ─── Modal lien de réinitialisation ─────────────────────── */
+
+function ModalLienReset({ lien, onFermer }) {
+  const [copie, setCopie] = useState(false);
+
+  const copier = async () => {
+    try {
+      await navigator.clipboard.writeText(lien);
+      setCopie(true);
+      setTimeout(() => setCopie(false), 2000);
+    } catch { /* clipboard indisponible, l'utilisateur peut sélectionner le texte manuellement */ }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md mx-4">
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 dark:border-slate-700">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-50 flex items-center gap-2">
+            <Lock className="w-4 h-4 text-indigo-600" />
+            Lien de réinitialisation
+          </h3>
+          <button onClick={onFermer} className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="p-5 space-y-3">
+          <p className="text-xs text-gray-500 dark:text-slate-400">
+            Transmettez ce lien à la personne concernée (oral, SMS…). Il est valable 24h et ne peut être utilisé qu'une seule fois.
+          </p>
+          <div className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-gray-700 dark:text-slate-300 break-all select-all">
+            {lien}
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <button onClick={onFermer} className="px-3 py-1.5 text-sm text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors">
+              Fermer
+            </button>
+            <button onClick={copier} className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              {copie ? <Check className="w-3.5 h-3.5" /> : null}
+              {copie ? 'Copié !' : 'Copier'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

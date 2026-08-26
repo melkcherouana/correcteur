@@ -73,4 +73,7 @@ router.delete('/:id', autoriser('ADMIN'), ctrl.supprimer);
 // PATCH /api/users/:id/reactiver — réactivation du compte
 router.patch('/:id/reactiver', autoriser('ADMIN'), ctrl.reactiver);
 
+// POST /api/users/:id/reset-password-lien — génère un lien de réinitialisation à transmettre manuellement
+router.post('/:id/reset-password-lien', autoriser('ADMIN'), ctrl.genererLienReset);
+
 export default router;

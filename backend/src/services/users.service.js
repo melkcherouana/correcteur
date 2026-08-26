@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import * as XLSX from 'xlsx';
 import prisma from '../utils/prisma.js';
+import * as authService from './auth.service.js';
 
 const SALT_ROUNDS = 12;
 
@@ -127,6 +128,8 @@ export const reactiverUtilisateur = async (id) => {
   await obtenirUtilisateur(id);
   await prisma.utilisateur.update({ where: { id }, data: { actif: true } });
 };
+
+export const genererLienReset = (id) => authService.genererResetToken(id);
 
 export const supprimerDefinitivement = async (id) => {
   const u = await obtenirUtilisateur(id);

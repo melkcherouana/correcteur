@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext.jsx';
 import { FullPageSpinner } from './components/ui/Spinner.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import Login from './pages/Login.jsx';
+import ReinitialiserMotDePasse from './pages/ReinitialiserMotDePasse.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Classes from './pages/Classes.jsx';
 import ClasseDetail from './pages/ClasseDetail.jsx';
@@ -52,6 +53,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/reinitialiser-mot-de-passe" element={<ReinitialiserMotDePasse />} />
 
       <Route
         path="/"
