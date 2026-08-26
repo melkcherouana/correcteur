@@ -196,7 +196,7 @@ function FormulaireEvaluation({ classes, sequences, matieres, onSubmit, onClose,
                   return (
                     <div key={pole.id} className="border-b border-gray-100 last:border-0">
                       <div
-                        className="flex items-center gap-2 px-3 py-2 bg-indigo-50/60 cursor-pointer select-none"
+                        className="flex items-center gap-2 px-3 py-2 bg-indigo-50/60 dark:bg-indigo-900/30 cursor-pointer select-none"
                         onClick={() => setPolesOuverts((p) => ({ ...p, [pole.id]: !ouvert }))}
                       >
                         <input
@@ -207,7 +207,7 @@ function FormulaireEvaluation({ classes, sequences, matieres, onSubmit, onClose,
                           onClick={(e) => e.stopPropagation()}
                           className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
                         />
-                        <span className="flex-1 text-xs font-semibold text-indigo-700">
+                        <span className="flex-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
                           {pole.code} — {pole.titre}
                         </span>
                         <span className="text-xs text-gray-400">{nbSel}/{poleCompIds.length}</span>
@@ -218,7 +218,7 @@ function FormulaireEvaluation({ classes, sequences, matieres, onSubmit, onClose,
                         return (
                           <label
                             key={comp.id}
-                            className={`flex items-start gap-2 px-4 py-1.5 cursor-pointer text-xs hover:bg-gray-50 ${checked ? 'bg-indigo-50/40' : ''}`}
+                            className={`flex items-start gap-2 px-4 py-1.5 cursor-pointer text-xs hover:bg-gray-50 ${checked ? 'bg-indigo-50/40 dark:bg-indigo-900/30' : ''}`}
                           >
                             <input
                               type="checkbox"
@@ -227,7 +227,7 @@ function FormulaireEvaluation({ classes, sequences, matieres, onSubmit, onClose,
                               className="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
                             />
                             <span>
-                              <strong className="text-indigo-600">{comp.code}</strong>{' '}
+                              <strong className="text-indigo-600 dark:text-indigo-400">{comp.code}</strong>{' '}
                               <span className="text-gray-600">{comp.description}</span>
                             </span>
                           </label>
@@ -244,7 +244,7 @@ function FormulaireEvaluation({ classes, sequences, matieres, onSubmit, onClose,
                       return (
                         <label
                           key={comp.id}
-                          className={`flex items-start gap-2 px-4 py-1.5 cursor-pointer text-xs hover:bg-gray-50 ${checked ? 'bg-indigo-50/40' : ''}`}
+                          className={`flex items-start gap-2 px-4 py-1.5 cursor-pointer text-xs hover:bg-gray-50 ${checked ? 'bg-indigo-50/40 dark:bg-indigo-900/30' : ''}`}
                         >
                           <input
                             type="checkbox"
@@ -253,7 +253,7 @@ function FormulaireEvaluation({ classes, sequences, matieres, onSubmit, onClose,
                             className="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
                           />
                           <span>
-                            <strong className="text-indigo-600">{comp.code}</strong>{' '}
+                            <strong className="text-indigo-600 dark:text-indigo-400">{comp.code}</strong>{' '}
                             <span className="text-gray-600">{comp.description}</span>
                           </span>
                         </label>
@@ -265,7 +265,7 @@ function FormulaireEvaluation({ classes, sequences, matieres, onSubmit, onClose,
             )}
 
             {competenceIds.length > 0 && (
-              <p className="text-xs text-indigo-600 mt-1 font-medium">
+              <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1 font-medium">
                 {competenceIds.length} compétence{competenceIds.length > 1 ? 's' : ''} sélectionnée{competenceIds.length > 1 ? 's' : ''}
               </p>
             )}

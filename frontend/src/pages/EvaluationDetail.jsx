@@ -730,13 +730,13 @@ function CompetencesCiblees({ evaluation }) {
       <div className="space-y-2 mt-1">
         {poles.map(({ pole, comps }) => (
           <div key={pole.id}>
-            <p className="text-xs font-semibold text-indigo-700 mb-1 flex items-center gap-1.5">
-              <span className="font-mono bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">{pole.code}</span>
+            <p className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 mb-1 flex items-center gap-1.5">
+              <span className="font-mono bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded">{pole.code}</span>
               {pole.titre}
             </p>
             <div className="flex flex-wrap gap-1.5 pl-4">
               {comps.map((c) => (
-                <span key={c.id} className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg border border-indigo-100">
+                <span key={c.id} className="text-xs bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800">
                   <strong>{c.code}</strong> — {c.description}
                 </span>
               ))}
@@ -746,7 +746,7 @@ function CompetencesCiblees({ evaluation }) {
         {sansPole.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {sansPole.map((c) => (
-              <span key={c.id} className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg border border-indigo-100">
+              <span key={c.id} className="text-xs bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-800">
                 <strong>{c.code}</strong> — {c.description}
               </span>
             ))}
@@ -1052,8 +1052,8 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
                       ).length;
                       return (
                         <div key={comp.id}>
-                          <p className="text-xs font-bold text-indigo-700 mb-1.5 flex items-center gap-1.5 flex-wrap">
-                            <span className="font-mono bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded">
+                          <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-1.5 flex items-center gap-1.5 flex-wrap">
+                            <span className="font-mono bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded">
                               {comp.code}
                             </span>
                             <span className="text-gray-700 font-medium">{comp.description}</span>
@@ -1071,7 +1071,7 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
                                   <label
                                     key={critere.id}
                                     className={`flex items-start gap-2 cursor-pointer p-1.5 rounded-lg transition-colors ${
-                                      coche ? 'bg-emerald-50' : 'hover:bg-gray-50'
+                                      coche ? 'bg-emerald-50 dark:bg-emerald-900/30' : 'hover:bg-gray-50'
                                     }`}
                                   >
                                     <input
@@ -1081,7 +1081,7 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
                                       className="mt-0.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 flex-shrink-0"
                                     />
                                     <span className={`text-xs leading-relaxed ${
-                                      coche ? 'text-emerald-800 font-medium' : 'text-gray-500'
+                                      coche ? 'text-emerald-800 dark:text-emerald-300 font-medium' : 'text-gray-500'
                                     }`}>
                                       {critere.description}
                                     </span>

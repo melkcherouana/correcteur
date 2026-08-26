@@ -10,14 +10,14 @@ import ProgressBar from '../components/ui/ProgressBar.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
 const NIVEAU_CONFIG = {
-  DEPASSE:    { label: 'Dépassé',     couleur: 'bg-violet-100 text-violet-700',  barre: 'bg-violet-500', ordre: 4 },
-  ACQUIS:     { label: 'Acquis',      couleur: 'bg-green-100 text-green-700',    barre: 'bg-green-500',  ordre: 3 },
-  EN_COURS:   { label: 'En cours',    couleur: 'bg-amber-100 text-amber-700',    barre: 'bg-amber-400',  ordre: 2 },
-  NON_ACQUIS: { label: 'Non acquis',  couleur: 'bg-red-100 text-red-700',        barre: 'bg-red-400',    ordre: 1 },
+  DEPASSE:    { label: 'Dépassé',     couleur: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',  barre: 'bg-violet-500', ordre: 4 },
+  ACQUIS:     { label: 'Acquis',      couleur: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',    barre: 'bg-green-500',  ordre: 3 },
+  EN_COURS:   { label: 'En cours',    couleur: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',    barre: 'bg-amber-400',  ordre: 2 },
+  NON_ACQUIS: { label: 'Non acquis',  couleur: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',        barre: 'bg-red-400',    ordre: 1 },
 };
 
 function BadgeNiveau({ niveau }) {
-  const cfg = NIVEAU_CONFIG[niveau] ?? { label: niveau, couleur: 'bg-gray-100 text-gray-600' };
+  const cfg = NIVEAU_CONFIG[niveau] ?? { label: niveau, couleur: 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300' };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.couleur}`}>
       {cfg.label}
@@ -61,7 +61,7 @@ function SectionMatiere({ groupe }) {
           {groupe.competences.map((ce) => (
             <li key={ce.id} className="flex items-start justify-between px-5 py-3 gap-4">
               <div className="flex items-start gap-3 min-w-0">
-                <span className="mt-0.5 text-xs font-mono font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded flex-shrink-0">
+                <span className="mt-0.5 text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/40 px-1.5 py-0.5 rounded flex-shrink-0">
                   {ce.competence.code}
                 </span>
                 <p className="text-sm text-gray-700 leading-snug">{ce.competence.description}</p>

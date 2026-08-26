@@ -17,12 +17,12 @@ import Spinner from '../components/ui/Spinner.jsx';
 
 const NIVEAUX = ['NON_ACQUIS', 'EN_COURS', 'ACQUIS', 'DEPASSE'];
 const NIVEAU_CFG = {
-  NON_ACQUIS: { label: 'Non acquis', court: 'NA', bg: 'bg-red-100',    text: 'text-red-700',    score: 0   },
-  EN_COURS:   { label: 'En cours',   court: 'EC', bg: 'bg-orange-100', text: 'text-orange-700', score: 33  },
-  ACQUIS:     { label: 'Acquis',     court: 'A',  bg: 'bg-green-100',  text: 'text-green-700',  score: 66  },
-  DEPASSE:    { label: 'Dépassé',    court: 'D',  bg: 'bg-violet-100', text: 'text-violet-700', score: 100 },
+  NON_ACQUIS: { label: 'Non acquis', court: 'NA', bg: 'bg-red-100 dark:bg-red-900/40',       text: 'text-red-700 dark:text-red-300',       score: 0   },
+  EN_COURS:   { label: 'En cours',   court: 'EC', bg: 'bg-orange-100 dark:bg-orange-900/40', text: 'text-orange-700 dark:text-orange-300', score: 33  },
+  ACQUIS:     { label: 'Acquis',     court: 'A',  bg: 'bg-green-100 dark:bg-green-900/40',   text: 'text-green-700 dark:text-green-300',   score: 66  },
+  DEPASSE:    { label: 'Dépassé',    court: 'D',  bg: 'bg-violet-100 dark:bg-violet-900/40', text: 'text-violet-700 dark:text-violet-300', score: 100 },
 };
-const NON_EVALUE = { label: 'Non évalué', court: '—', bg: 'bg-gray-100', text: 'text-gray-400', score: 0 };
+const NON_EVALUE = { label: 'Non évalué', court: '—', bg: 'bg-gray-100 dark:bg-slate-700', text: 'text-gray-400 dark:text-slate-400', score: 0 };
 
 const cfg  = (niveau) => NIVEAU_CFG[niveau] ?? NON_EVALUE;
 const pole = (code)   => code?.split('.')[0] ?? code;
@@ -285,7 +285,7 @@ function LigneSuggestions({ eleveId, onAppliquer, onFermer }) {
   const changements = sug.filter((s) => s.niveauSuggere && s.niveauSuggere !== s.niveauActuel);
 
   return (
-    <td colSpan={100} className="px-4 py-3 bg-indigo-50 border-t border-indigo-100">
+    <td colSpan={100} className="px-4 py-3 bg-indigo-50 dark:bg-indigo-900/30 border-t border-indigo-100 dark:border-indigo-800">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex-1">
           {changements.length === 0 ? (
@@ -296,8 +296,8 @@ function LigneSuggestions({ eleveId, onAppliquer, onFermer }) {
                 const avant = cfg(s.niveauActuel);
                 const apres = cfg(s.niveauSuggere);
                 return (
-                  <span key={s.competenceId} className="flex items-center gap-1 text-xs bg-white border border-indigo-200 rounded-full px-2 py-0.5">
-                    <span className="font-mono font-bold text-indigo-600">{s.code}</span>
+                  <span key={s.competenceId} className="flex items-center gap-1 text-xs bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700 rounded-full px-2 py-0.5">
+                    <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">{s.code}</span>
                     <span className={`font-bold ${avant.text}`}>{avant.court}</span>
                     →
                     <span className={`font-bold ${apres.text}`}>{apres.court}</span>
@@ -461,8 +461,8 @@ function OngletGrille() {
           <table className="text-xs min-w-max">
             <thead>
               {/* Ligne pôles */}
-              <tr className="bg-indigo-50 border-b border-indigo-100">
-                <th className="sticky left-0 z-10 bg-indigo-50 text-left px-4 py-2 font-semibold text-gray-600 min-w-[160px]">
+              <tr className="bg-indigo-50 dark:bg-indigo-900/30 border-b border-indigo-100 dark:border-indigo-800">
+                <th className="sticky left-0 z-10 bg-indigo-50 dark:bg-indigo-900/30 text-left px-4 py-2 font-semibold text-gray-600 min-w-[160px]">
                   Élève
                 </th>
                 <th className="px-2 py-2 text-gray-400 font-medium whitespace-nowrap">IA</th>
@@ -470,7 +470,7 @@ function OngletGrille() {
                   <th
                     key={p}
                     colSpan={comps.length}
-                    className="px-2 py-2 font-bold text-indigo-700 text-center border-l border-indigo-200"
+                    className="px-2 py-2 font-bold text-indigo-700 dark:text-indigo-300 text-center border-l border-indigo-200 dark:border-indigo-800"
                   >
                     Pôle {p} <span className="font-normal text-gray-400">({comps.length})</span>
                   </th>
@@ -484,7 +484,7 @@ function OngletGrille() {
                   <th
                     key={c.id}
                     title={c.description}
-                    className="px-2 py-2 font-mono text-indigo-600 font-bold text-center whitespace-nowrap border-l border-gray-100"
+                    className="px-2 py-2 font-mono text-indigo-600 dark:text-indigo-400 font-bold text-center whitespace-nowrap border-l border-gray-100"
                   >
                     {c.code}
                   </th>
@@ -502,7 +502,7 @@ function OngletGrille() {
                       <button
                         onClick={() => toggleSuggestions(eleve.id)}
                         title="Suggérer niveaux depuis les notes"
-                        className={`p-1 rounded-lg transition-colors ${lignesSug[eleve.id] ? 'bg-indigo-100 text-indigo-600' : 'text-gray-400 hover:text-indigo-500 hover:bg-indigo-50'}`}
+                        className={`p-1 rounded-lg transition-colors ${lignesSug[eleve.id] ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300' : 'text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30'}`}
                       >
                         <Sparkles className="w-3.5 h-3.5" />
                       </button>
@@ -519,8 +519,8 @@ function OngletGrille() {
                     ))}
                   </tr>
                   {lignesSug[eleve.id] && (
-                    <tr key={`sug-${eleve.id}`} className="bg-indigo-50/60">
-                      <td className="sticky left-0 z-10 bg-indigo-50/80 px-4 py-1 text-xs text-indigo-600 font-medium whitespace-nowrap">
+                    <tr key={`sug-${eleve.id}`} className="bg-indigo-50/60 dark:bg-indigo-900/20">
+                      <td className="sticky left-0 z-10 bg-indigo-50/80 dark:bg-indigo-900/30 px-4 py-1 text-xs text-indigo-600 dark:text-indigo-300 font-medium whitespace-nowrap">
                         Suggestions notes
                       </td>
                       <LigneSuggestions

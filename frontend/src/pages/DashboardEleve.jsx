@@ -14,10 +14,10 @@ import StatCard from '../components/ui/StatCard.jsx';
 import Badge from '../components/ui/Badge.jsx';
 
 const NIVEAU_CONFIG = {
-  DEPASSE:    { label: 'Dépassé',    couleur: 'bg-violet-100 text-violet-700' },
-  ACQUIS:     { label: 'Acquis',     couleur: 'bg-green-100 text-green-700' },
-  EN_COURS:   { label: 'En cours',   couleur: 'bg-amber-100 text-amber-700' },
-  NON_ACQUIS: { label: 'Non acquis', couleur: 'bg-red-100 text-red-700' },
+  DEPASSE:    { label: 'Dépassé',    couleur: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300' },
+  ACQUIS:     { label: 'Acquis',     couleur: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
+  EN_COURS:   { label: 'En cours',   couleur: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' },
+  NON_ACQUIS: { label: 'Non acquis', couleur: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' },
 };
 
 const TYPE_LABELS = {
@@ -26,7 +26,7 @@ const TYPE_LABELS = {
 };
 
 function BadgeNiveau({ niveau }) {
-  const cfg = NIVEAU_CONFIG[niveau] ?? { label: niveau, couleur: 'bg-gray-100 text-gray-600' };
+  const cfg = NIVEAU_CONFIG[niveau] ?? { label: niveau, couleur: 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300' };
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.couleur}`}>
       {cfg.label}

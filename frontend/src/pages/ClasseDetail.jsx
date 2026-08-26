@@ -22,11 +22,11 @@ const TYPE_LABELS = {
 
 // Mapping NiveauCompetence → affichage palier
 const NIVEAU_CELL = {
-  null:       { bg: 'bg-gray-100',    text: 'text-gray-400',   label: 'NE', score: 0, libelle: 'Non évalué'  },
-  NON_ACQUIS: { bg: 'bg-red-100',     text: 'text-red-700',    label: 'N',  score: 1, libelle: 'Novice'       },
-  EN_COURS:   { bg: 'bg-orange-100',  text: 'text-orange-700', label: 'D',  score: 2, libelle: 'Débrouillé'  },
-  ACQUIS:     { bg: 'bg-yellow-100',  text: 'text-yellow-700', label: 'A',  score: 3, libelle: 'Averti'       },
-  DEPASSE:    { bg: 'bg-green-100',   text: 'text-green-700',  label: 'E',  score: 4, libelle: 'Expert'       },
+  null:       { bg: 'bg-gray-100 dark:bg-slate-700',      text: 'text-gray-400 dark:text-slate-400',    label: 'NE', score: 0, libelle: 'Non évalué'  },
+  NON_ACQUIS: { bg: 'bg-red-100 dark:bg-red-900/40',       text: 'text-red-700 dark:text-red-300',       label: 'N',  score: 1, libelle: 'Novice'       },
+  EN_COURS:   { bg: 'bg-orange-100 dark:bg-orange-900/40', text: 'text-orange-700 dark:text-orange-300', label: 'D',  score: 2, libelle: 'Débrouillé'  },
+  ACQUIS:     { bg: 'bg-yellow-100 dark:bg-yellow-900/40', text: 'text-yellow-700 dark:text-yellow-300', label: 'A',  score: 3, libelle: 'Averti'       },
+  DEPASSE:    { bg: 'bg-green-100 dark:bg-green-900/40',   text: 'text-green-700 dark:text-green-300',   label: 'E',  score: 4, libelle: 'Expert'       },
 };
 
 const SCORE_TO_NIVEAU = ['null', 'NON_ACQUIS', 'EN_COURS', 'ACQUIS', 'DEPASSE'];
@@ -76,7 +76,7 @@ function TableauSynthese({ classeId }) {
       >
         <thead>
           {/* ── Ligne 1 : en-têtes de pôles ─────────────────────────────── */}
-          <tr className="border-b border-gray-200 bg-indigo-50/40">
+          <tr className="border-b border-gray-200 bg-indigo-50/40 dark:bg-indigo-900/20">
             <th
               rowSpan={2}
               className="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wide border-r border-gray-200 sticky left-0 bg-white z-20 min-w-[180px]"
@@ -88,11 +88,11 @@ function TableauSynthese({ classeId }) {
               <th
                 key={pole.id}
                 colSpan={pole.competences.length}
-                className="px-2 py-2 text-center border-l border-indigo-200 bg-indigo-50/60"
+                className="px-2 py-2 text-center border-l border-indigo-200 dark:border-indigo-800 bg-indigo-50/60 dark:bg-indigo-900/30"
               >
-                <p className="font-bold text-indigo-800 leading-tight">{pole.code}</p>
+                <p className="font-bold text-indigo-800 dark:text-indigo-300 leading-tight">{pole.code}</p>
                 <p
-                  className="font-normal text-indigo-600 text-[11px] leading-tight truncate max-w-[200px] mx-auto"
+                  className="font-normal text-indigo-600 dark:text-indigo-400 text-[11px] leading-tight truncate max-w-[200px] mx-auto"
                   title={pole.titre}
                 >
                   {pole.titre}
@@ -115,11 +115,11 @@ function TableauSynthese({ classeId }) {
                 <th
                   key={comp.id}
                   className={`px-1 py-1.5 text-center min-w-[54px] max-w-[76px] ${
-                    i === 0 ? 'border-l border-indigo-200' : 'border-l border-gray-100'
+                    i === 0 ? 'border-l border-indigo-200 dark:border-indigo-800' : 'border-l border-gray-100'
                   }`}
                   title={comp.description}
                 >
-                  <span className="font-mono font-bold text-indigo-600 block text-[11px]">
+                  <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 block text-[11px]">
                     {comp.code}
                   </span>
                   <span className="text-gray-400 font-normal block truncate text-[10px] max-w-[70px] mx-auto leading-tight">
@@ -154,7 +154,7 @@ function TableauSynthese({ classeId }) {
                       <td
                         key={comp.id}
                         className={`py-1.5 text-center ${
-                          i === 0 ? 'border-l border-indigo-100' : 'border-l border-gray-50'
+                          i === 0 ? 'border-l border-indigo-100 dark:border-indigo-900' : 'border-l border-gray-50'
                         }`}
                       >
                         <span

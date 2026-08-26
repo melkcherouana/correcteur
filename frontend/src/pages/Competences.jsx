@@ -10,10 +10,10 @@ import Spinner from '../components/ui/Spinner.jsx';
 const NIVEAUX_CYCLE = ['NON_ACQUIS', 'EN_COURS', 'ACQUIS', 'DEPASSE'];
 
 const NIVEAU_INFOS = {
-  NON_ACQUIS: { label: 'NA', bg: 'bg-gray-100 text-gray-500 border-gray-200', full: 'Non acquis' },
-  EN_COURS:   { label: 'EC', bg: 'bg-amber-50 text-amber-700 border-amber-200', full: 'En cours' },
-  ACQUIS:     { label: 'A',  bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', full: 'Acquis' },
-  DEPASSE:    { label: 'D+', bg: 'bg-violet-50 text-violet-700 border-violet-200', full: 'Dépassé' },
+  NON_ACQUIS: { label: 'NA', bg: 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600', full: 'Non acquis' },
+  EN_COURS:   { label: 'EC', bg: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800', full: 'En cours' },
+  ACQUIS:     { label: 'A',  bg: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800', full: 'Acquis' },
+  DEPASSE:    { label: 'D+', bg: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:border-violet-800', full: 'Dépassé' },
 };
 
 function CelluleNiveau({ eleveId, competenceId, niveau, onModifier }) {
