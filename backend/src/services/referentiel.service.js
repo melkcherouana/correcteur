@@ -8,97 +8,106 @@ export const analyserPdfReferentiel = async (buffer) => extraireCompetencesPDF(b
 // ─── Import validé en base (avec pôles) ──────────────────────────────────────
 
 export const importerReferentiel = async ({ titre, niveau, poles, matiereExistanteId }) => {
-  return prisma.$transaction(async (tx) => {
-    let matiereId = matiereExistanteId;
+  let matiereId = matiereExistanteId;
 
-    if (!matiereId) {
-      const code = (titre || 'REFERENTIEL')
-        .normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .toUpperCase().replace(/[^A-Z0-9]/g, '_').slice(0, 20);
+  if (!matiereId) {
+    const code = (titre || 'REFERENTIEL')
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toUpperCase().replace(/[^A-Z0-9]/g, '_').slice(0, 20);
 
-      const matiere = await tx.matiere.create({
-        data: {
-          code,
-          nom: titre || 'Référentiel importé',
-          description: `Référentiel ${niveau ?? 'BAC PRO'} — importé automatiquement`,
-        },
-      });
-      matiereId = matiere.id;
-    }
+    const matiere = await prisma.matiere.create({
+      data: {
+        code,
+        nom: titre || 'Référentiel importé',
+        description: `Référentiel ${niveau ?? 'BAC PRO'} — importé automatiquement`,
+      },
+    });
+    matiereId = matiere.id;
+  }
 
-    let totalCreees = 0;
-    let totalIgnorees = 0;
+  let totalCreees = 0;
+  let totalIgnorees = 0;
 
-    // Vérification préalable des codes déjà présents pour cette matière :
-    // un `try/catch` autour de la création ne suffit pas pour ignorer un
-    // doublon, car dans une transaction Postgres, une contrainte violée
-    // avorte TOUTE la transaction (erreur 25P02 « current transaction is
-    // aborted ») — les requêtes suivantes échouent même si l'erreur est
-    // capturée côté JS. Il faut donc éviter le conflit en amont plutôt que
-    // de compter dessus pour l'ignorer après coup.
-    const codesExistants = new Set(
-      (await tx.competence.findMany({ where: { matiereId }, select: { code: true } }))
-        .map((c) => c.code)
-    );
+  // Pas de transaction englobante : $transaction(async (tx) => …) (transactions
+  // interactives Prisma) échoue en prod avec « Transaction API error:
+  // Transaction not found » derrière le pooler pgbouncer de Supabase (mode
+  // transaction, port 6543) — chaque requête peut atterrir sur une connexion
+  // physique différente. Sans atomicité, un import relancé après un échec
+  // partiel doit pouvoir reprendre sans dupliquer ce qui a déjà été créé :
+  // d'où les vérifications de codes déjà présents ci-dessous, pour les
+  // compétences comme pour les pôles.
+  const codesExistants = new Set(
+    (await prisma.competence.findMany({ where: { matiereId }, select: { code: true } }))
+      .map((c) => c.code)
+  );
+  const polesExistants = new Map(
+    (await prisma.pole.findMany({ where: { matiereId }, select: { id: true, code: true } }))
+      .map((p) => [p.code, p.id])
+  );
 
-    for (let pIdx = 0; pIdx < (poles ?? []).length; pIdx++) {
-      const pole = poles[pIdx];
+  for (let pIdx = 0; pIdx < (poles ?? []).length; pIdx++) {
+    const pole = poles[pIdx];
 
-      // Créer le pôle en base
-      let poleId = null;
-      if (pole.titre || pole.code) {
-        const poleCreé = await tx.pole.create({
+    // Créer le pôle en base (ou réutiliser celui déjà créé lors d'une tentative précédente)
+    let poleId = null;
+    if (pole.titre || pole.code) {
+      const codePole = pole.code ?? `P${pIdx + 1}`;
+      if (polesExistants.has(codePole)) {
+        poleId = polesExistants.get(codePole);
+      } else {
+        const poleCreé = await prisma.pole.create({
           data: {
-            code: pole.code ?? `P${pIdx + 1}`,
+            code: codePole,
             titre: pole.titre ?? `Pôle ${pIdx + 1}`,
             ordre: pIdx,
             matiereId,
           },
         });
         poleId = poleCreé.id;
-      }
-
-      // Créer les compétences liées à ce pôle
-      for (let cIdx = 0; cIdx < (pole.competences ?? []).length; cIdx++) {
-        const comp = pole.competences[cIdx];
-        const code = comp.code || `${pole.code ?? 'C'}${cIdx + 1}`;
-
-        if (codesExistants.has(code)) {
-          totalIgnorees++;
-          continue;
-        }
-
-        const competence = await tx.competence.create({
-          data: {
-            code,
-            description: comp.description,
-            matiereId,
-            poleId,
-            ordre: cIdx,
-          },
-        });
-        codesExistants.add(code);
-
-        for (const critere of comp.criteres ?? []) {
-          await tx.critere.create({ data: { description: critere, competenceId: competence.id } });
-        }
-        totalCreees++;
+        polesExistants.set(codePole, poleId);
       }
     }
 
-    const matiere = await tx.matiere.findUnique({
-      where: { id: matiereId },
-      include: { _count: { select: { competences: true } } },
-    });
+    // Créer les compétences liées à ce pôle
+    for (let cIdx = 0; cIdx < (pole.competences ?? []).length; cIdx++) {
+      const comp = pole.competences[cIdx];
+      const code = comp.code || `${pole.code ?? 'C'}${cIdx + 1}`;
 
-    return {
-      matiereId,
-      matiereNom: matiere?.nom,
-      totalCreees,
-      totalIgnorees,
-      totalPoles: (poles ?? []).length,
-    };
+      if (codesExistants.has(code)) {
+        totalIgnorees++;
+        continue;
+      }
+
+      const competence = await prisma.competence.create({
+        data: {
+          code,
+          description: comp.description,
+          matiereId,
+          poleId,
+          ordre: cIdx,
+        },
+      });
+      codesExistants.add(code);
+
+      for (const critere of comp.criteres ?? []) {
+        await prisma.critere.create({ data: { description: critere, competenceId: competence.id } });
+      }
+      totalCreees++;
+    }
+  }
+
+  const matiere = await prisma.matiere.findUnique({
+    where: { id: matiereId },
+    include: { _count: { select: { competences: true } } },
   });
+
+  return {
+    matiereId,
+    matiereNom: matiere?.nom,
+    totalCreees,
+    totalIgnorees,
+    totalPoles: (poles ?? []).length,
+  };
 };
 
 // ─── Liste des matières avec leurs pôles ─────────────────────────────────────
