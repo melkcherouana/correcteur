@@ -13,7 +13,6 @@ import api from '../services/api.js';
 import Card, { CardHeader } from '../components/ui/Card.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
-import GrilleEvaluation from '../components/evaluation/GrilleEvaluation.jsx';
 import UploadDevoir from '../components/evaluation/UploadDevoir.jsx';
 
 const TYPE_LABELS = {
