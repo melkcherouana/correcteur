@@ -103,7 +103,7 @@ export default function NotificationsDropdown() {
                   <li
                     key={n.id}
                     className={`flex gap-3 px-4 py-3 border-b border-gray-50 last:border-0 transition-colors ${
-                      n.lue ? 'bg-white' : 'bg-indigo-50/50'
+                      n.lue ? 'bg-white' : 'bg-indigo-50/50 dark:bg-indigo-900/20'
                     }`}
                   >
                     {/* Indicateur non-lu */}

@@ -6,11 +6,11 @@ import Card, { CardHeader } from '../ui/Card.jsx';
 import Spinner from '../ui/Spinner.jsx';
 
 const MENTION_COULEURS = {
-  'Insuffisant':  'bg-red-100 text-red-700',
-  'Passable':     'bg-orange-100 text-orange-700',
-  'Assez Bien':   'bg-yellow-100 text-yellow-700',
-  'Bien':         'bg-blue-100 text-blue-700',
-  'Très Bien':    'bg-green-100 text-green-700',
+  'Insuffisant':  'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+  'Passable':     'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300',
+  'Assez Bien':   'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
+  'Bien':         'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  'Très Bien':    'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
 };
 
 function ResultatIA({ resultat }) {
@@ -21,14 +21,14 @@ function ResultatIA({ resultat }) {
   const pct = resultat.noteMax > 0 ? Math.round((resultat.noteGlobale / resultat.noteMax) * 100) : 0;
 
   return (
-    <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 overflow-hidden">
+    <div className="mt-4 rounded-xl border border-indigo-100 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-900/20 overflow-hidden">
       <button
         onClick={() => setOuvert((v) => !v)}
         className="w-full flex items-center justify-between px-4 py-3 text-left"
       >
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-indigo-500" />
-          <span className="text-sm font-semibold text-indigo-700">Correction IA</span>
+          <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Correction IA</span>
           <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${mentionClass}`}>{resultat.mention}</span>
         </div>
         <div className="flex items-center gap-3">
@@ -41,7 +41,7 @@ function ResultatIA({ resultat }) {
         <div className="px-4 pb-4 space-y-4">
           {/* Barre de progression */}
           <div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all ${pct >= 80 ? 'bg-green-500' : pct >= 60 ? 'bg-blue-500' : pct >= 40 ? 'bg-yellow-500' : 'bg-red-500'}`}
                 style={{ width: `${pct}%` }}
@@ -59,7 +59,7 @@ function ResultatIA({ resultat }) {
           {resultat.criteres?.length > 0 && (
             <div className="space-y-2">
               {resultat.criteres.map((c, i) => (
-                <div key={i} className="bg-white rounded-lg p-3 border border-gray-100">
+                <div key={i} className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-gray-100 dark:border-slate-700">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-semibold text-gray-700">{c.nom}</span>
                     <span className="text-xs font-bold text-gray-900">{c.noteObtenue}/{c.noteMax}</span>
@@ -142,11 +142,11 @@ export default function UploadDevoir({ evaluationId, maSoumission }) {
 
       {/* Statut soumission existante */}
       {dejaDepose && (
-        <div className="mb-4 flex items-start gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+        <div className="mb-4 flex items-start gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800">
           <CheckCircle2 className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-emerald-800">Devoir déposé</p>
-            <p className="text-xs text-emerald-600 mt-0.5">{maSoumission.fichierNom}</p>
+            <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">Devoir déposé</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">{maSoumission.fichierNom}</p>
           </div>
         </div>
       )}
@@ -160,7 +160,7 @@ export default function UploadDevoir({ evaluationId, maSoumission }) {
           onClick={() => inputRef.current?.click()}
           className={[
             'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
-            dragOver ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+            dragOver ? 'border-indigo-400 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
           ].join(' ')}
         >
           <input
