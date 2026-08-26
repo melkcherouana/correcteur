@@ -11,10 +11,10 @@ import Spinner from '../components/ui/Spinner.jsx';
 import StatCard from '../components/ui/StatCard.jsx';
 
 const PALIERS = {
-  1: { label: 'Novice',      classe: 'bg-red-100 text-red-700' },
-  2: { label: 'Débrouillé',  classe: 'bg-orange-100 text-orange-700' },
-  3: { label: 'Averti',      classe: 'bg-yellow-100 text-yellow-800' },
-  4: { label: 'Expert',      classe: 'bg-green-100 text-green-700' },
+  1: { label: 'Novice',      classe: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' },
+  2: { label: 'Débrouillé',  classe: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300' },
+  3: { label: 'Averti',      classe: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300' },
+  4: { label: 'Expert',      classe: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
 };
 
 function PalierBadge({ valeur }) {

@@ -27,7 +27,7 @@ function FormCcf({ classes, onFermer, onCree }) {
 
   const champ = (label, key, type = 'text', req = false) => (
     <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">{label}{req && ' *'}</label>
+      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{label}{req && ' *'}</label>
       <input type={type} value={form[key]} onChange={e => set(key, type === 'number' ? Number(e.target.value) : e.target.value)}
         required={req}
         className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -36,15 +36,15 @@ function FormCcf({ classes, onFermer, onCree }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-900">Nouveau CCF</h2>
-          <button onClick={onFermer}><X className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">Nouveau CCF</h2>
+          <button onClick={onFermer}><X className="w-5 h-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" /></button>
         </div>
         <form onSubmit={e => { e.preventDefault(); mutation.mutate(); }} className="p-6 space-y-4">
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Classe *</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Classe *</label>
             <select value={form.classeId} onChange={e => set('classeId', e.target.value)} required
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option value="">Choisir…</option>
@@ -56,7 +56,7 @@ function FormCcf({ classes, onFermer, onCree }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Situation</label>
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Situation</label>
               <select value={form.numSituation} onChange={e => set('numSituation', Number(e.target.value))}
                 className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value={1}>S1 — Situation 1</option>
@@ -73,7 +73,7 @@ function FormCcf({ classes, onFermer, onCree }) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Contexte professionnel</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Contexte professionnel</label>
             <textarea value={form.contexte} onChange={e => set('contexte', e.target.value)}
               rows={3} placeholder="Décrire la situation professionnelle évaluée…"
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -88,7 +88,7 @@ function FormCcf({ classes, onFermer, onCree }) {
 
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onFermer}
-              className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">
+              className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">
               Annuler
             </button>
             <button type="submit" disabled={mutation.isPending}
@@ -111,14 +111,14 @@ function CarteCcf({ ccf, onClick }) {
 
   return (
     <button onClick={onClick}
-      className="w-full flex items-start justify-between gap-4 p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-left group">
+      className="w-full flex items-start justify-between gap-4 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:shadow-sm transition-all text-left group">
       <div className="flex items-start gap-4 min-w-0 flex-1">
-        <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
-          <span className="text-sm font-bold text-purple-700">S{sit}</span>
+        <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/40 flex items-center justify-center flex-shrink-0">
+          <span className="text-sm font-bold text-purple-700 dark:text-purple-300">S{sit}</span>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-slate-800 truncate">{ccf.titre}</p>
-          <p className="text-sm text-slate-500">{ccf.classe?.nom}</p>
+          <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{ccf.titre}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{ccf.classe?.nom}</p>
           {ccf.datePassage && (
             <p className="text-xs text-slate-400 mt-0.5">
               {format(new Date(ccf.datePassage), 'd MMM yyyy', { locale: fr })}
@@ -163,7 +163,7 @@ export default function Ccf() {
     <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 flex items-center gap-2">
             <GraduationCap className="w-6 h-6 text-purple-600" /> CCF
           </h1>
           <p className="text-slate-500 text-sm mt-0.5">Contrôles en Cours de Formation</p>
@@ -179,7 +179,7 @@ export default function Ccf() {
       {estEnseignant && (
         <Card>
           <div className="flex flex-col gap-1 min-w-[180px] max-w-xs">
-            <label className="text-xs font-medium text-slate-600">Filtrer par classe</label>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Filtrer par classe</label>
             <select value={classeId} onChange={e => setClasseId(e.target.value)}
               className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option value="">Toutes les classes</option>

@@ -16,10 +16,10 @@ import ProgressBar from '../components/ui/ProgressBar.jsx';
 const NIVEAUX = ['NON_ACQUIS', 'EN_COURS', 'ACQUIS', 'DEPASSE'];
 const NIV_LABEL = { NON_ACQUIS: 'Non acquis', EN_COURS: 'En cours', ACQUIS: 'Acquis', DEPASSE: 'Dépassé' };
 const NIV_COULEUR = {
-  NON_ACQUIS: 'bg-red-100 text-red-700 border-red-200',
-  EN_COURS:   'bg-yellow-100 text-yellow-700 border-yellow-200',
-  ACQUIS:     'bg-green-100 text-green-700 border-green-200',
-  DEPASSE:    'bg-indigo-100 text-indigo-700 border-indigo-200',
+  NON_ACQUIS: 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800',
+  EN_COURS:   'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-300 dark:border-yellow-800',
+  ACQUIS:     'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/40 dark:text-green-300 dark:border-green-800',
+  DEPASSE:    'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-800',
 };
 const STATUT_LABEL = { PLANIFIEE: 'Planifiée', EN_COURS: 'En cours', TERMINEE: 'Terminée', VALIDEE: 'Validée' };
 
@@ -34,7 +34,7 @@ function SelectNiveau({ valeur, onChange, lectureSeule }) {
   return (
     <select value={valeur ?? ''}
       onChange={e => onChange(e.target.value || null)}
-      className="text-xs border border-slate-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+      className="text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
       <option value="">—</option>
       {NIVEAUX.map(n => <option key={n} value={n}>{NIV_LABEL[n]}</option>)}
     </select>
@@ -47,8 +47,8 @@ function InfoItem({ label, valeur }) {
   if (!valeur) return null;
   return (
     <div>
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-sm font-medium text-slate-800 mt-0.5">{valeur}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mt-0.5">{valeur}</p>
     </div>
   );
 }
@@ -156,26 +156,26 @@ export default function PfmpDetail() {
     <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
       {/* Nav */}
       <button onClick={() => navigate('/pfmps')}
-        className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
+        className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
         <ChevronLeft className="w-4 h-4" /> Toutes les PFMP
       </button>
 
       {/* En-tête */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-7 h-7 text-indigo-600" />
+            <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-xl font-bold text-slate-900 truncate">{pfmp.entrepriseNom}</h1>
-              <p className="text-slate-500 text-sm">PFMP {pfmp.numero} — {pfmp.eleve.prenom} {pfmp.eleve.nom}</p>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50 truncate">{pfmp.entrepriseNom}</h1>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">PFMP {pfmp.numero} — {pfmp.eleve.prenom} {pfmp.eleve.nom}</p>
               <div className="flex items-center gap-2 mt-1.5">
                 <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium
-                  ${pfmp.statut === 'VALIDEE' ? 'bg-green-100 text-green-700' :
-                    pfmp.statut === 'TERMINEE' ? 'bg-amber-100 text-amber-700' :
-                    pfmp.statut === 'EN_COURS' ? 'bg-blue-100 text-blue-700' :
-                    'bg-slate-100 text-slate-600'}`}>
+                  ${pfmp.statut === 'VALIDEE' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' :
+                    pfmp.statut === 'TERMINEE' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' :
+                    pfmp.statut === 'EN_COURS' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' :
+                    'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'}`}>
                   {STATUT_LABEL[pfmp.statut]}
                 </span>
                 <span className="text-xs text-slate-400 flex items-center gap-1">
@@ -199,7 +199,7 @@ export default function PfmpDetail() {
               )}
               {!modeEdit ? (
                 <button onClick={() => setModeEdit(true)}
-                  className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 text-slate-600 text-sm font-medium rounded-lg hover:bg-slate-50">
+                  className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
                   <Pencil className="w-4 h-4" /> Évaluer
                 </button>
               ) : (
@@ -215,10 +215,10 @@ export default function PfmpDetail() {
         </div>
 
         {competencesActuelles.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-slate-100">
+          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-slate-500">Progression des compétences</span>
-              <span className="text-xs font-bold text-indigo-700">{nbAcquis}/{competencesActuelles.length} acquises</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Progression des compétences</span>
+              <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">{nbAcquis}/{competencesActuelles.length} acquises</span>
             </div>
             <ProgressBar value={progression} max={100} />
           </div>
@@ -226,7 +226,7 @@ export default function PfmpDetail() {
       </div>
 
       {erreur && (
-        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl">
+        <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-900/30 px-4 py-3 rounded-xl">
           <AlertCircle className="w-4 h-4 flex-shrink-0" /> {erreur}
         </div>
       )}
@@ -247,8 +247,8 @@ export default function PfmpDetail() {
           <CardHeader title="Maître de stage" />
           {pfmp.tuteurNom || pfmp.tuteurEmail ? (
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
-                <User className="w-4 h-4 text-slate-500" />
+              <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
+                <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
               </div>
               <div className="space-y-1">
                 <InfoItem label="Nom" valeur={pfmp.tuteurNom} />
@@ -264,9 +264,9 @@ export default function PfmpDetail() {
 
       {/* Grille de compétences */}
       <Card padding={false}>
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-slate-900">Évaluation des compétences</h2>
-          {modeEdit && <span className="text-xs text-indigo-600 font-medium">Mode édition</span>}
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50">Évaluation des compétences</h2>
+          {modeEdit && <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Mode édition</span>}
         </div>
 
         {competencesDispo.length === 0 && competencesActuelles.length === 0 ? (
@@ -276,21 +276,21 @@ export default function PfmpDetail() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50">
+              <thead className="bg-slate-50 dark:bg-slate-800">
                 <tr>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Compétence</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Tuteur</th>
-                  <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Enseignant</th>
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Compétence</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tuteur</th>
+                  <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Enseignant</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                 {(modeEdit ? competencesDispo : competencesActuelles.map(c =>
                   competencesDispo.find(cd => cd.id === c.competenceId) ?? { id: c.competenceId, code: c.code, description: c.description, matiere: null }
                 )).map(comp => (
-                  <tr key={comp.id} className="hover:bg-slate-50/50">
+                  <tr key={comp.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                     <td className="px-6 py-3">
-                      <span className="font-mono text-xs text-indigo-600 font-bold mr-2">{comp.code}</span>
-                      <span className="text-slate-700">{comp.description}</span>
+                      <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold mr-2">{comp.code}</span>
+                      <span className="text-slate-700 dark:text-slate-300">{comp.description}</span>
                       {comp.matiere && (
                         <span className="ml-2 text-xs text-slate-400">{comp.matiere.nom}</span>
                       )}
@@ -322,7 +322,7 @@ export default function PfmpDetail() {
         <Card>
           <CardHeader title="Appréciation du tuteur" />
           {pfmp.appreciationTuteur ? (
-            <p className="text-sm text-slate-700 italic">"{pfmp.appreciationTuteur}"</p>
+            <p className="text-sm text-slate-700 dark:text-slate-300 italic">"{pfmp.appreciationTuteur}"</p>
           ) : (
             <p className="text-sm text-slate-400">Non renseignée</p>
           )}
@@ -336,10 +336,10 @@ export default function PfmpDetail() {
               onChange={e => setAppEns(e.target.value)}
               rows={4}
               placeholder="Saisir une appréciation…"
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           ) : pfmp.appreciationEnseignant ? (
-            <p className="text-sm text-slate-700 italic">"{pfmp.appreciationEnseignant}"</p>
+            <p className="text-sm text-slate-700 dark:text-slate-300 italic">"{pfmp.appreciationEnseignant}"</p>
           ) : (
             <p className="text-sm text-slate-400">Non renseignée</p>
           )}

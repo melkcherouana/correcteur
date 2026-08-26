@@ -40,25 +40,25 @@ function EtapeUpload({ onResultat }) {
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         onClick={() => inputRef.current?.click()}
-        className="border-2 border-dashed border-slate-300 rounded-xl p-10 text-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors"
+        className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-10 text-center cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-colors"
       >
         <Upload className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-        <p className="font-medium text-slate-700">Déposez votre référentiel PDF ici</p>
-        <p className="text-sm text-slate-500 mt-1">ou cliquez pour parcourir (max 20 Mo)</p>
+        <p className="font-medium text-slate-700 dark:text-slate-300">Déposez votre référentiel PDF ici</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">ou cliquez pour parcourir (max 20 Mo)</p>
         <input ref={inputRef} type="file" accept="application/pdf" className="hidden"
           onChange={(e) => { setFichier(e.target.files[0] ?? null); setErreur(''); }} />
       </div>
 
       {fichier && (
-        <div className="mt-4 flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+        <div className="mt-4 flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
           <BookOpen className="w-5 h-5 text-indigo-600 flex-shrink-0" />
-          <span className="text-sm text-slate-700 truncate flex-1">{fichier.name}</span>
-          <span className="text-xs text-slate-500">{(fichier.size / 1024).toFixed(0)} Ko</span>
+          <span className="text-sm text-slate-700 dark:text-slate-300 truncate flex-1">{fichier.name}</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">{(fichier.size / 1024).toFixed(0)} Ko</span>
         </div>
       )}
 
       {erreur && (
-        <p className="mt-3 flex items-center gap-2 text-sm text-red-600">
+        <p className="mt-3 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
           <AlertCircle className="w-4 h-4" /> {erreur}
         </p>
       )}
@@ -113,7 +113,7 @@ function NomPole({ nom, onRenommer, onSupprimer }) {
           value={valeur}
           onChange={(e) => setValeur(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') valider(); if (e.key === 'Escape') setEdite(false); }}
-          className="flex-1 min-w-0 px-2 py-0.5 rounded border border-indigo-300 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="flex-1 min-w-0 px-2 py-0.5 rounded border border-indigo-300 dark:border-indigo-700 dark:bg-slate-700 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
         <button onClick={valider} className="p-1 text-indigo-600 hover:text-indigo-800"><Check className="w-4 h-4" /></button>
         <button onClick={() => setEdite(false)} className="p-1 text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
@@ -124,7 +124,7 @@ function NomPole({ nom, onRenommer, onSupprimer }) {
   return (
     <div className="flex items-center gap-2 flex-1 min-w-0 group">
       <FolderOpen className="w-4 h-4 text-indigo-500 flex-shrink-0" />
-      <span className="font-semibold text-slate-800 text-sm truncate">{nom}</span>
+      <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">{nom}</span>
       <button
         onClick={() => setEdite(true)}
         className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-indigo-600 transition-opacity"
@@ -154,18 +154,18 @@ function CarteCompetence({ comp, isDragging, onDragStart, onDragOver, onSupprime
       onDragOver={(e) => { e.preventDefault(); onDragOver?.(); }}
       className={[
         'rounded-lg border bg-white transition-all select-none group',
-        isDragging ? 'opacity-50 border-indigo-400 shadow-lg scale-95' : 'border-slate-200',
+        isDragging ? 'opacity-50 border-indigo-400 shadow-lg scale-95' : 'border-slate-200 dark:border-slate-700',
       ].join(' ')}
     >
       {/* En-tête de la compétence */}
       <div
         draggable
         onDragStart={onDragStart}
-        className="flex items-start gap-2 px-3 py-2 cursor-grab active:cursor-grabbing hover:bg-slate-50 rounded-lg"
+        className="flex items-start gap-2 px-3 py-2 cursor-grab active:cursor-grabbing hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg"
       >
         <GripVertical className="w-4 h-4 text-slate-300 flex-shrink-0 mt-0.5" />
-        <span className="font-mono text-xs text-indigo-600 font-bold mt-0.5 flex-shrink-0">{comp.code}</span>
-        <span className="text-sm text-slate-700 leading-snug flex-1">{comp.description}</span>
+        <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold mt-0.5 flex-shrink-0">{comp.code}</span>
+        <span className="text-sm text-slate-700 dark:text-slate-300 leading-snug flex-1">{comp.description}</span>
         <button
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onSupprimer?.(); }}
@@ -192,13 +192,13 @@ function CarteCompetence({ comp, isDragging, onDragStart, onDragOver, onSupprime
 
       {/* Critères observables */}
       {ouvert && nbCriteres > 0 && (
-        <div className="px-3 pb-2.5 border-t border-slate-100 mt-0">
+        <div className="px-3 pb-2.5 border-t border-slate-100 dark:border-slate-700 mt-0">
           <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mt-2 mb-1.5">
             Critères observables évaluables
           </p>
           <ul className="space-y-1">
             {(comp.criteres ?? []).map((critere, i) => (
-              <li key={i} className="flex items-start gap-1.5 text-xs text-slate-600">
+              <li key={i} className="flex items-start gap-1.5 text-xs text-slate-600 dark:text-slate-400">
                 <span className="text-indigo-400 flex-shrink-0 mt-0.5">•</span>
                 <span className="leading-snug">{critere}</span>
               </li>
@@ -220,7 +220,7 @@ function ZonePole({ pole, dragId, dragOver, onDragOverPole, onDropPole, onRenomm
       onDrop={() => onDropPole()}
       className={[
         'rounded-xl border-2 transition-colors',
-        estCible ? 'border-indigo-400 bg-indigo-50' : 'border-slate-200 bg-white',
+        estCible ? 'border-indigo-400 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : 'border-slate-200 dark:border-slate-700 bg-white',
       ].join(' ')}
     >
       {/* En-tête pôle */}
@@ -229,7 +229,7 @@ function ZonePole({ pole, dragId, dragOver, onDragOverPole, onDropPole, onRenomm
         <span className="text-xs text-slate-400 flex-shrink-0">
           {(pole.competences ?? []).length} compétence{(pole.competences ?? []).length !== 1 ? 's' : ''}
         </span>
-        <button onClick={() => setOuvert((v) => !v)} className="p-1 text-slate-400 hover:text-slate-600">
+        <button onClick={() => setOuvert((v) => !v)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
           {ouvert ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
       </div>
@@ -246,7 +246,7 @@ function ZonePole({ pole, dragId, dragOver, onDragOverPole, onDropPole, onRenomm
           {(pole.competences ?? []).length === 0 ? (
             <div className={[
               'flex items-center justify-center h-10 rounded-lg border-2 border-dashed text-sm',
-              estCible ? 'border-indigo-400 text-indigo-500 bg-indigo-50' : 'border-slate-200 text-slate-400',
+              estCible ? 'border-indigo-400 dark:border-indigo-500 text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30' : 'border-slate-200 dark:border-slate-700 text-slate-400',
             ].join(' ')}>
               Déposez une compétence ici
             </div>
@@ -406,25 +406,25 @@ function EtapeOrganisation({ referentiel, onContinuer }) {
       className="space-y-6"
     >
       {/* Résumé */}
-      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 space-y-1">
-        <h3 className="font-semibold text-indigo-800">{referentiel.titre ?? 'Référentiel analysé'}</h3>
+      <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 space-y-1">
+        <h3 className="font-semibold text-indigo-800 dark:text-indigo-300">{referentiel.titre ?? 'Référentiel analysé'}</h3>
         {referentiel.niveau && (
-          <p className="text-sm text-indigo-600">Niveau : {referentiel.niveau}</p>
+          <p className="text-sm text-indigo-600 dark:text-indigo-400">Niveau : {referentiel.niveau}</p>
         )}
         <div className="flex flex-wrap gap-3 mt-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-medium">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-medium">
             <FolderOpen className="w-3.5 h-3.5" />
             {poles.length} {labelTypeOrg}
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-medium">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-medium">
             <BookOpen className="w-3.5 h-3.5" />
             {totalComps} compétence{totalComps !== 1 ? 's' : ''}
           </span>
           <span className={[
             'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium',
             totalCriteres > 0
-              ? 'bg-green-100 text-green-700'
-              : 'bg-amber-100 text-amber-700',
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
           ].join(' ')}>
             <ListChecks className="w-3.5 h-3.5" />
             {totalCriteres > 0
@@ -433,7 +433,7 @@ function EtapeOrganisation({ referentiel, onContinuer }) {
           </span>
         </div>
         {referentiel.observations && (
-          <p className="flex items-start gap-1.5 text-xs text-indigo-500 mt-2 italic">
+          <p className="flex items-start gap-1.5 text-xs text-indigo-500 dark:text-indigo-400 mt-2 italic">
             <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
             {referentiel.observations}
           </p>
@@ -442,16 +442,16 @@ function EtapeOrganisation({ referentiel, onContinuer }) {
 
       {/* Sélection matière */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-0.5">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-0.5">
           Associer à une matière
         </label>
-        <p className="text-xs text-slate-500 mb-1.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
           Choisissez la matière existante ou laissez vide pour en créer une nouvelle automatiquement.
         </p>
         <select
           value={matiereExistanteId}
           onChange={(e) => setMatiereExistanteId(e.target.value)}
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <option value="">— Créer une nouvelle matière —</option>
           {matieres.map((m) => (
@@ -459,7 +459,7 @@ function EtapeOrganisation({ referentiel, onContinuer }) {
           ))}
         </select>
         {matiereSelectionnee && (matiereSelectionnee.poles.length > 0 || matiereSelectionnee._count?.competences > 0) && (
-          <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+          <div className="flex items-start gap-2 mt-2 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-xs text-amber-800 dark:text-amber-300">
             <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
             <span>
               « {matiereSelectionnee.nom} » contient déjà {matiereSelectionnee.poles.length} pôle{matiereSelectionnee.poles.length !== 1 ? 's' : ''} et {matiereSelectionnee._count?.competences ?? 0} compétence{(matiereSelectionnee._count?.competences ?? 0) !== 1 ? 's' : ''}.
@@ -470,7 +470,7 @@ function EtapeOrganisation({ referentiel, onContinuer }) {
       </div>
 
       {/* Instructions */}
-      <div className="flex items-start gap-2 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+      <div className="flex items-start gap-2 px-4 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm text-amber-800 dark:text-amber-300">
         <GripVertical className="w-4 h-4 mt-0.5 flex-shrink-0" />
         <span>
           Vérifiez la liste extraite par l'IA. Glissez les compétences entre les {labelTypeOrg.toLowerCase()} pour réorganiser.
@@ -508,7 +508,7 @@ function EtapeOrganisation({ referentiel, onContinuer }) {
       {/* Ajouter un pôle */}
       <button
         onClick={ajouterPole}
-        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border-2 border-dashed border-slate-300 text-sm text-slate-500 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+        className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 text-sm text-slate-500 dark:text-slate-400 hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
       >
         <Plus className="w-4 h-4" />
         Ajouter un pôle
@@ -544,11 +544,11 @@ function EtapeImport({ payload, onSucces }) {
       {mutation.isPending && (
         <>
           <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-          <p className="text-slate-600">Import en cours…</p>
+          <p className="text-slate-600 dark:text-slate-400">Import en cours…</p>
         </>
       )}
       {mutation.isError && (
-        <div className="flex items-center gap-2 text-sm text-red-600">
+        <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
           <AlertCircle className="w-5 h-5" />
           {mutation.error?.response?.data?.message ?? 'Erreur lors de l\'import'}
         </div>
@@ -563,18 +563,18 @@ function EtapeSucces({ resultat, onRecommencer }) {
   return (
     <div className="max-w-md mx-auto text-center py-10">
       <CheckCircle className="w-14 h-14 text-green-500 mx-auto mb-4" />
-      <h3 className="text-xl font-bold text-slate-800 mb-2">Import réussi !</h3>
-      <p className="text-slate-600 mb-1">
-        <span className="font-semibold text-indigo-700">{resultat.totalCreees}</span> compétences importées
+      <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Import réussi !</h3>
+      <p className="text-slate-600 dark:text-slate-400 mb-1">
+        <span className="font-semibold text-indigo-700 dark:text-indigo-400">{resultat.totalCreees}</span> compétences importées
         dans <span className="font-semibold">{resultat.totalPoles}</span> pôle{resultat.totalPoles !== 1 ? 's' : ''}
         {resultat.totalIgnorees > 0 && ` (${resultat.totalIgnorees} doublons ignorés)`}
       </p>
-      <p className="text-slate-600 mb-6">
+      <p className="text-slate-600 dark:text-slate-400 mb-6">
         Matière : <span className="font-medium">{resultat.matiereNom}</span>
       </p>
       <button
         onClick={onRecommencer}
-        className="px-6 py-2 rounded-lg border border-indigo-300 text-indigo-700 hover:bg-indigo-50 text-sm font-medium"
+        className="px-6 py-2 rounded-lg border border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-sm font-medium"
       >
         Importer un autre référentiel
       </button>
@@ -599,8 +599,8 @@ export default function ImportReferentiel() {
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Import de référentiel</h1>
-        <p className="text-slate-500 mt-1">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Import de référentiel</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1">
           L'IA extrait les pôles et compétences — vous les réorganisez avant l'import.
         </p>
       </div>
@@ -610,18 +610,18 @@ export default function ImportReferentiel() {
         {ETAPES.map((label, i) => (
           <div key={i} className="flex items-center gap-2">
             <div className={`flex items-center justify-center w-7 h-7 rounded-full text-sm font-bold
-              ${i < etape ? 'bg-green-500 text-white' : i === etape ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+              ${i < etape ? 'bg-green-500 text-white' : i === etape ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
               {i < etape ? '✓' : i + 1}
             </div>
-            <span className={`text-sm ${i === etape ? 'font-medium text-slate-900' : 'text-slate-500'}`}>
+            <span className={`text-sm ${i === etape ? 'font-medium text-slate-900 dark:text-slate-50' : 'text-slate-500 dark:text-slate-400'}`}>
               {label}
             </span>
-            {i < ETAPES.length - 1 && <div className="w-8 h-0.5 bg-slate-200 mx-1" />}
+            {i < ETAPES.length - 1 && <div className="w-8 h-0.5 bg-slate-200 dark:bg-slate-700 mx-1" />}
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
         {etape === 0 && (
           <EtapeUpload onResultat={(data) => { setReferentiel(data); setEtape(1); }} />
         )}

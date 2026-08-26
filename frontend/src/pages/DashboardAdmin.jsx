@@ -232,7 +232,7 @@ export default function DashboardAdmin() {
                     <td className="px-4 py-3 font-medium text-gray-800">{c.nom}</td>
                     <td className="px-4 py-3 text-right text-gray-500">{c._count.eleves}</td>
                     <td className="px-6 py-3 text-right">
-                      <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold">
+                      <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 text-xs font-bold">
                         {c._count.evaluations}
                       </span>
                     </td>
@@ -267,10 +267,10 @@ export default function DashboardAdmin() {
           <CardHeader title="Répartition des évaluations par type" />
           <div className="flex flex-wrap gap-3">
             {stats.evalsParType.map((e) => (
-              <div key={e.type} className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
-                <span className="text-sm font-semibold text-slate-700">{LABELS_TYPE[e.type] ?? e.type}</span>
+              <div key={e.type} className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{LABELS_TYPE[e.type] ?? e.type}</span>
                 <span className="text-xs text-slate-400">·</span>
-                <span className="text-sm font-bold text-indigo-600">{e.count}</span>
+                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{e.count}</span>
               </div>
             ))}
           </div>

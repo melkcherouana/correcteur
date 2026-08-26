@@ -19,9 +19,9 @@ import ProgressBar from '../components/ui/ProgressBar.jsx';
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const TYPE_STYLE = {
-  ABSENCE:   'bg-red-100 text-red-700',
-  RETARD:    'bg-amber-100 text-amber-700',
-  EXCLUSION: 'bg-purple-100 text-purple-700',
+  ABSENCE:   'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+  RETARD:    'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  EXCLUSION: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
 };
 const TYPE_LABEL = { ABSENCE: 'Absence', RETARD: 'Retard', EXCLUSION: 'Exclusion' };
 const MOIS_FR = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
@@ -73,17 +73,17 @@ function OngletSaisie({ classes }) {
       {/* Sélecteurs */}
       <div className="flex flex-wrap gap-4">
         <div className="flex flex-col gap-1 min-w-[180px]">
-          <label className="text-xs font-medium text-slate-600">Classe</label>
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Classe</label>
           <select value={classeId} onChange={e => setClasseId(e.target.value)}
-            className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">Choisir une classe…</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-slate-600">Date</label>
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Date</label>
           <input type="date" value={date} onChange={e => setDate(e.target.value)}
-            className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         </div>
       </div>
 
@@ -95,9 +95,9 @@ function OngletSaisie({ classes }) {
             <>
               {/* Résumé */}
               <div className="flex items-center justify-between px-1">
-                <p className="text-sm text-slate-600">
-                  <span className="font-bold text-slate-900">{membres.length}</span> élèves ·{' '}
-                  <span className="font-bold text-red-600">{nbAbsents}</span> absent{nbAbsents > 1 ? 's' : ''} sélectionné{nbAbsents > 1 ? 's' : ''}
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  <span className="font-bold text-slate-900 dark:text-slate-50">{membres.length}</span> élèves ·{' '}
+                  <span className="font-bold text-red-600 dark:text-red-400">{nbAbsents}</span> absent{nbAbsents > 1 ? 's' : ''} sélectionné{nbAbsents > 1 ? 's' : ''}
                 </p>
                 <button
                   onClick={() => mutation.mutate()}
@@ -109,45 +109,45 @@ function OngletSaisie({ classes }) {
               </div>
 
               {mutation.isSuccess && (
-                <p className="text-sm text-green-600 bg-green-50 px-4 py-2 rounded-lg flex items-center gap-2">
+                <p className="text-sm text-green-600 dark:text-green-300 bg-green-50 dark:bg-green-900/30 px-4 py-2 rounded-lg flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4" /> Absences enregistrées.
                 </p>
               )}
 
               {/* Liste des élèves */}
-              <div className="rounded-xl border border-slate-200 overflow-hidden">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <table className="w-full text-sm">
-                  <thead className="bg-slate-50">
+                  <thead className="bg-slate-50 dark:bg-slate-800">
                     <tr>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide w-10">✓</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Élève</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Type</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Heures</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">De → À</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Motif</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide w-10">✓</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Élève</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Type</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Heures</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">De → À</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Motif</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                     {membres.map(({ eleve }) => {
                       const l = lignes[eleve.id];
                       const absent = l?.absent ?? false;
                       return (
                         <tr key={eleve.id}
-                          className={`transition-colors ${absent ? 'bg-red-50' : 'hover:bg-slate-50'}`}>
+                          className={`transition-colors ${absent ? 'bg-red-50 dark:bg-red-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
                           <td className="px-4 py-2.5">
                             <button onClick={() => toggleAbsent(eleve.id)}
                               className={`w-6 h-6 rounded flex items-center justify-center border-2 transition-colors
-                                ${absent ? 'bg-red-500 border-red-500 text-white' : 'border-slate-300 hover:border-red-400'}`}>
+                                ${absent ? 'bg-red-500 border-red-500 text-white' : 'border-slate-300 dark:border-slate-600 hover:border-red-400'}`}>
                               {absent && <UserX className="w-3.5 h-3.5" />}
                             </button>
                           </td>
-                          <td className="px-4 py-2.5 font-medium text-slate-800">
+                          <td className="px-4 py-2.5 font-medium text-slate-800 dark:text-slate-100">
                             {eleve.nom} {eleve.prenom}
                           </td>
                           <td className="px-4 py-2.5">
                             {absent && (
                               <select value={l.type} onChange={e => setLigne(eleve.id, 'type', e.target.value)}
-                                className="text-xs border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                className="text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                 {Object.entries(TYPE_LABEL).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
                               </select>
                             )}
@@ -156,7 +156,7 @@ function OngletSaisie({ classes }) {
                             {absent && (
                               <input type="number" step="0.5" min="0.5" max="8" value={l.dureeHeures}
                                 onChange={e => setLigne(eleve.id, 'dureeHeures', e.target.value)}
-                                className="w-16 text-xs border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                                className="w-16 text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                             )}
                           </td>
                           <td className="px-4 py-2.5">
@@ -164,11 +164,11 @@ function OngletSaisie({ classes }) {
                               <div className="flex items-center gap-1">
                                 <input type="time" value={l.heureDebut}
                                   onChange={e => setLigne(eleve.id, 'heureDebut', e.target.value)}
-                                  className="text-xs border border-slate-300 rounded px-2 py-1 w-20 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                                  className="text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded px-2 py-1 w-20 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                                 <span className="text-slate-400 text-xs">→</span>
                                 <input type="time" value={l.heureFin}
                                   onChange={e => setLigne(eleve.id, 'heureFin', e.target.value)}
-                                  className="text-xs border border-slate-300 rounded px-2 py-1 w-20 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                                  className="text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded px-2 py-1 w-20 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                               </div>
                             )}
                           </td>
@@ -176,7 +176,7 @@ function OngletSaisie({ classes }) {
                             {absent && (
                               <input type="text" value={l.motif} placeholder="Motif…"
                                 onChange={e => setLigne(eleve.id, 'motif', e.target.value)}
-                                className="text-xs border border-slate-300 rounded px-2 py-1 w-full max-w-[180px] focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                                className="text-xs border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded px-2 py-1 w-full max-w-[180px] focus:outline-none focus:ring-1 focus:ring-indigo-500" />
                             )}
                           </td>
                         </tr>
@@ -207,12 +207,12 @@ function LigneAbsence({ absence, onJustifier, estEnseignant }) {
 
   return (
     <>
-      <tr className={`hover:bg-slate-50/50 cursor-pointer ${absence.justifiee ? '' : 'border-l-2 border-l-red-400'}`}
+      <tr className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/50 cursor-pointer ${absence.justifiee ? '' : 'border-l-2 border-l-red-400'}`}
         onClick={() => estEnseignant && setOuvert(v => !v)}>
-        <td className="px-5 py-3 text-sm text-slate-700">
+        <td className="px-5 py-3 text-sm text-slate-700 dark:text-slate-300">
           {format(new Date(absence.date), 'd MMM yyyy', { locale: fr })}
         </td>
-        <td className="px-4 py-3 font-medium text-slate-800">
+        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">
           {absence.eleve.nom} {absence.eleve.prenom}
         </td>
         <td className="px-4 py-3">
@@ -220,16 +220,16 @@ function LigneAbsence({ absence, onJustifier, estEnseignant }) {
             {TYPE_LABEL[absence.type]}
           </span>
         </td>
-        <td className="px-4 py-3 text-sm text-slate-600 tabular-nums">
+        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 tabular-nums">
           {absence.dureeHeures}h
           {absence.heureDebut && <span className="text-xs text-slate-400 ml-1">({absence.heureDebut}–{absence.heureFin})</span>}
         </td>
         <td className="px-4 py-3">
           {absence.justifiee
-            ? <span className="flex items-center gap-1 text-xs text-green-600 font-medium"><CheckCircle2 className="w-3.5 h-3.5" /> Justifiée</span>
-            : <span className="flex items-center gap-1 text-xs text-red-500 font-medium"><AlertTriangle className="w-3.5 h-3.5" /> Non justifiée</span>}
+            ? <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-medium"><CheckCircle2 className="w-3.5 h-3.5" /> Justifiée</span>
+            : <span className="flex items-center gap-1 text-xs text-red-500 dark:text-red-400 font-medium"><AlertTriangle className="w-3.5 h-3.5" /> Non justifiée</span>}
         </td>
-        <td className="px-4 py-3 text-sm text-slate-500 max-w-[180px] truncate">{absence.motif ?? '—'}</td>
+        <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 max-w-[180px] truncate">{absence.motif ?? '—'}</td>
         {estEnseignant && (
           <td className="px-3 py-3">
             {ouvert ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-300" />}
@@ -237,14 +237,14 @@ function LigneAbsence({ absence, onJustifier, estEnseignant }) {
         )}
       </tr>
       {ouvert && estEnseignant && (
-        <tr className="bg-slate-50">
+        <tr className="bg-slate-50 dark:bg-slate-800">
           <td colSpan={7} className="px-5 py-3">
             <div className="flex items-end gap-3 flex-wrap">
               <div className="flex-1 min-w-[200px]">
-                <label className="text-xs font-medium text-slate-500 block mb-1">Justificatif</label>
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-1">Justificatif</label>
                 <input value={justificatif} onChange={e => setJustificatif(e.target.value)}
                   placeholder="Motif médical, familial…"
-                  className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
               <div className="flex gap-2">
                 {!absence.justifiee && (
@@ -313,31 +313,31 @@ function OngletListe({ classes, eleveIdFixe }) {
       <div className="flex flex-wrap gap-3">
         {estEnseignant && !eleveIdFixe && (
           <select value={classeId} onChange={e => setClasseId(e.target.value)}
-            className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">Toutes les classes</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
           </select>
         )}
         <input type="date" value={dateDebut} onChange={e => setDateDebut(e.target.value)}
           placeholder="Du…"
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)}
           placeholder="Au…"
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         <select value={type} onChange={e => setType(e.target.value)}
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <option value="">Tous types</option>
           {Object.entries(TYPE_LABEL).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
         </select>
         <select value={justifiee} onChange={e => setJustifiee(e.target.value)}
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
           <option value="">Toutes</option>
           <option value="true">Justifiées</option>
           <option value="false">Non justifiées</option>
         </select>
         {estEnseignant && (
           <button onClick={exporter}
-            className="flex items-center gap-2 px-4 py-2 border border-slate-200 text-slate-600 text-sm rounded-lg hover:bg-slate-50 ml-auto">
+            className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 ml-auto">
             <Download className="w-4 h-4" /> Exporter CSV
           </button>
         )}
@@ -351,20 +351,20 @@ function OngletListe({ classes, eleveIdFixe }) {
           <p className="text-sm">Aucune absence pour ces critères</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200 overflow-hidden">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50">
+            <thead className="bg-slate-50 dark:bg-slate-800">
               <tr>
-                <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Élève</th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Type</th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Durée</th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Statut</th>
-                <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Motif</th>
+                <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Date</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Élève</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Type</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Durée</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Statut</th>
+                <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Motif</th>
                 {estEnseignant && <th className="w-8" />}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {absences.map(a => (
                 <LigneAbsence key={a.id} absence={a} estEnseignant={estEnseignant}
                   onJustifier={(id, j, just) => mutJustifier.mutate({ id, justifiee: j, justificatif: just })} />
@@ -418,18 +418,18 @@ function OngletStats({ classes, eleveIdFixe }) {
       {/* Filtres globaux */}
       <div className="flex flex-wrap gap-3">
         <input type="date" value={dateDebut} onChange={e => setDateDebut(e.target.value)}
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
         <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)}
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
       </div>
 
       {/* Sous-onglets */}
       {estEnseignant && !eleveIdFixe && (
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-fit">
           {[['eleve', 'Par élève'], ['classe', 'Par classe']].map(([k, l]) => (
             <button key={k} onClick={() => setOngletStats(k)}
               className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors
-                ${ongletStats === k ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>
+                ${ongletStats === k ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
               {l}
             </button>
           ))}
@@ -442,13 +442,13 @@ function OngletStats({ classes, eleveIdFixe }) {
           {estEnseignant && (
             <div className="flex flex-wrap gap-3">
               <select value={classeId} onChange={e => { setClasseId(e.target.value); setEleveId(''); }}
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Choisir une classe…</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
               </select>
               {classeId && (
                 <select value={eleveId} onChange={e => setEleveId(e.target.value)}
-                  className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                   <option value="">Choisir un élève…</option>
                   {classeMembres.map(({ eleve }) => <option key={eleve.id} value={eleve.id}>{eleve.nom} {eleve.prenom}</option>)}
                 </select>
@@ -469,13 +469,13 @@ function OngletStats({ classes, eleveIdFixe }) {
               {/* Taux de justification */}
               <Card>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-700">Taux de justification</span>
-                  <span className="text-lg font-bold text-indigo-700">{statsEleve.tauxJustification}%</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Taux de justification</span>
+                  <span className="text-lg font-bold text-indigo-700 dark:text-indigo-300">{statsEleve.tauxJustification}%</span>
                 </div>
                 <ProgressBar value={statsEleve.tauxJustification} max={100} />
-                <div className="flex gap-4 mt-2 text-xs text-slate-500">
-                  <span className="text-amber-600">{statsEleve.retards} retard{statsEleve.retards > 1 ? 's' : ''}</span>
-                  <span className="text-red-500">{statsEleve.absencesSeules} absence{statsEleve.absencesSeules > 1 ? 's' : ''}</span>
+                <div className="flex gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="text-amber-600 dark:text-amber-400">{statsEleve.retards} retard{statsEleve.retards > 1 ? 's' : ''}</span>
+                  <span className="text-red-500 dark:text-red-400">{statsEleve.absencesSeules} absence{statsEleve.absencesSeules > 1 ? 's' : ''}</span>
                 </div>
               </Card>
 
@@ -508,43 +508,43 @@ function OngletStats({ classes, eleveIdFixe }) {
       {ongletStats === 'classe' && estEnseignant && (
         <div className="space-y-4">
           <select value={classeId} onChange={e => setClasseId(e.target.value)}
-            className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-xs">
+            className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-xs">
             <option value="">Choisir une classe…</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
           </select>
 
           {classeId && statsClasse.length > 0 && (
-            <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50">
+                <thead className="bg-slate-50 dark:bg-slate-800">
                   <tr>
-                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">#</th>
-                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Élève</th>
-                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Heures</th>
-                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Absences</th>
-                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Retards</th>
-                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Non justif.</th>
+                    <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">#</th>
+                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Élève</th>
+                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Heures</th>
+                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Absences</th>
+                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Retards</th>
+                    <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Non justif.</th>
                     <th className="px-4 py-2.5 w-32"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                   {statsClasse.map((s, i) => {
                     const pctNonJust = s.totalAbsences > 0
                       ? Math.round((s.nonJustifiees / s.totalAbsences) * 100)
                       : 0;
                     return (
                       <tr key={s.eleve.id}
-                        className={`hover:bg-slate-50 ${s.totalHeures >= 10 ? 'bg-red-50/50' : ''}`}>
+                        className={`hover:bg-slate-50 dark:hover:bg-slate-800 ${s.totalHeures >= 10 ? 'bg-red-50/50 dark:bg-red-900/20' : ''}`}>
                         <td className="px-5 py-3 text-slate-400 font-mono text-xs">{i + 1}</td>
-                        <td className="px-4 py-3 font-medium text-slate-800">{s.eleve.nom} {s.eleve.prenom}</td>
-                        <td className="px-4 py-3 text-right font-bold text-slate-900">{s.totalHeures}h</td>
-                        <td className="px-4 py-3 text-right text-slate-600">{s.totalAbsences}</td>
-                        <td className="px-4 py-3 text-right text-amber-600">{s.retards}</td>
-                        <td className="px-4 py-3 text-right text-red-500">{s.nonJustifiees}</td>
+                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{s.eleve.nom} {s.eleve.prenom}</td>
+                        <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-slate-50">{s.totalHeures}h</td>
+                        <td className="px-4 py-3 text-right text-slate-600 dark:text-slate-400">{s.totalAbsences}</td>
+                        <td className="px-4 py-3 text-right text-amber-600 dark:text-amber-400">{s.retards}</td>
+                        <td className="px-4 py-3 text-right text-red-500 dark:text-red-400">{s.nonJustifiees}</td>
                         <td className="px-4 py-3">
                           {s.totalAbsences > 0 && (
                             <div className="flex items-center gap-2">
-                              <div className="flex-1 bg-slate-200 rounded-full h-1.5">
+                              <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
                                 <div className="h-1.5 rounded-full bg-red-400"
                                   style={{ width: `${pctNonJust}%` }} />
                               </div>
@@ -599,20 +599,20 @@ export default function Absences() {
     <div className="max-w-5xl mx-auto py-8 px-4 space-y-6">
       {/* En-tête */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 flex items-center gap-2">
           <CalendarDays className="w-6 h-6 text-red-500" /> Absences & assiduité
         </h1>
-        <p className="text-slate-500 text-sm mt-0.5">
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
           {estEnseignant ? 'Saisie, suivi et statistiques d\'assiduité' : 'Historique de vos absences et retards'}
         </p>
       </div>
 
       {/* Onglets */}
-      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-fit">
         {onglets.map(({ id, label }) => (
           <button key={id} onClick={() => setOnglet(id)}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors
-              ${onglet === id ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>
+              ${onglet === id ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
             {label}
           </button>
         ))}

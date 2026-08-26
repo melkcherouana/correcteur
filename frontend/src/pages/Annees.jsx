@@ -48,7 +48,7 @@ function ModalCreerAnnee({ onFermer }) {
             </div>
           </div>
           {mutation.error && (
-            <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+            <p className="text-xs text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-lg">
               {mutation.error?.response?.data?.message ?? 'Erreur lors de la création'}
             </p>
           )}
@@ -88,9 +88,9 @@ function ModalChangementAnnee({ annee, onFermer }) {
         <div className="p-6">
           {!resultat ? (
             <div className="space-y-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-amber-800 space-y-1">
+              <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-800 dark:text-amber-300 space-y-1">
                   <p className="font-semibold">Action irréversible</p>
                   <ul className="text-xs space-y-0.5 list-disc list-inside">
                     <li>Toutes les classes actives seront promues d'un niveau</li>
@@ -107,7 +107,7 @@ function ModalChangementAnnee({ annee, onFermer }) {
               </label>
 
               {mutation.error && (
-                <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+                <p className="text-xs text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-lg">
                   {mutation.error?.response?.data?.message ?? 'Erreur lors du changement'}
                 </p>
               )}
@@ -126,7 +126,7 @@ function ModalChangementAnnee({ annee, onFermer }) {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-emerald-700">
+              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
                 <CheckCircle2 className="w-5 h-5" />
                 <p className="font-semibold text-sm">Changement effectué — année active : {resultat.annee?.libelle}</p>
               </div>
@@ -150,13 +150,13 @@ function ModalChangementAnnee({ annee, onFermer }) {
                     </div>
                   )}
                   {resultat.bilan.classesNonReconnues?.length > 0 && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-amber-800 mb-1 flex items-center gap-1.5">
+                    <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300 mb-1 flex items-center gap-1.5">
                         <AlertTriangle className="w-3.5 h-3.5" />
                         Non traitées — niveau non reconnu, à corriger manuellement
                       </p>
                       {resultat.bilan.classesNonReconnues.map((c, i) => (
-                        <p key={i} className="text-xs text-amber-700">{c.nom} — niveau « {c.niveau} »</p>
+                        <p key={i} className="text-xs text-amber-700 dark:text-amber-400">{c.nom} — niveau « {c.niveau} »</p>
                       ))}
                     </div>
                   )}
@@ -219,14 +219,14 @@ export default function Annees() {
             <Card key={annee.id}>
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${annee.actif ? 'bg-emerald-100' : 'bg-gray-100'}`}>
-                    <CalendarDays className={`w-5 h-5 ${annee.actif ? 'text-emerald-600' : 'text-gray-400'}`} />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${annee.actif ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-gray-100'}`}>
+                    <CalendarDays className={`w-5 h-5 ${annee.actif ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400'}`} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-gray-900">{annee.libelle}</p>
                       {annee.actif && (
-                        <span className="text-xs bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" /> Active
                         </span>
                       )}
@@ -242,14 +242,14 @@ export default function Annees() {
                     <>
                       <button
                         onClick={() => setAnneeChangement(annee)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors border border-amber-200"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg transition-colors border border-amber-200 dark:border-amber-800"
                       >
                         <ArrowRightLeft className="w-3.5 h-3.5" />
                         Activer + promouvoir
                       </button>
                       <button
                         onClick={() => supprimerMutation.mutate(annee.id)}
-                        className="p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 rounded-lg transition-colors"
                         title="Supprimer"
                       >
                         <Trash2 className="w-4 h-4" />

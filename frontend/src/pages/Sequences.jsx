@@ -21,14 +21,14 @@ function FormSequence({ matieres, onFermer, onCree }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-900">Nouvelle séquence</h2>
-          <button onClick={onFermer}><X className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">Nouvelle séquence</h2>
+          <button onClick={onFermer}><X className="w-5 h-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" /></button>
         </div>
         <form onSubmit={e => { e.preventDefault(); mutation.mutate(); }} className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Matière *</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Matière *</label>
             <select value={form.matiereId} onChange={e => set('matiereId', e.target.value)} required
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option value="">Choisir une matière…</option>
@@ -37,21 +37,21 @@ function FormSequence({ matieres, onFermer, onCree }) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Titre *</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Titre *</label>
             <input value={form.titre} onChange={e => set('titre', e.target.value)} required
               placeholder="ex : Séquence 3 — Automatismes industriels"
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Description</label>
             <textarea value={form.description} onChange={e => set('description', e.target.value)}
               rows={2} placeholder="Résumé de la séquence…"
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Objectifs pédagogiques</label>
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Objectifs pédagogiques</label>
             <textarea value={form.objectifs} onChange={e => set('objectifs', e.target.value)}
               rows={3} placeholder="À la fin de cette séquence, l'élève sera capable de…"
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -63,7 +63,7 @@ function FormSequence({ matieres, onFermer, onCree }) {
 
           <div className="flex justify-end gap-3 pt-1">
             <button type="button" onClick={onFermer}
-              className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">
+              className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700">
               Annuler
             </button>
             <button type="submit" disabled={mutation.isPending}
@@ -85,30 +85,30 @@ function GroupeMatiere({ matiere, sequences, onNaviguer, onDeplacer }) {
     <div>
       {/* En-tête matière */}
       <div className="flex items-center gap-2 mb-2 px-1">
-        <span className="font-mono text-xs text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">
+        <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-900/40 px-2 py-0.5 rounded">
           {matiere.code}
         </span>
-        <h2 className="text-sm font-semibold text-slate-700">{matiere.nom}</h2>
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{matiere.nom}</h2>
         <span className="text-xs text-slate-400 ml-auto">{sequences.length} séquence{sequences.length > 1 ? 's' : ''}</span>
       </div>
 
       <div className="space-y-1.5">
         {sequences.map((seq, idx) => (
           <div key={seq.id}
-            className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 hover:border-indigo-200 transition-all group">
+            className="flex items-center gap-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-200 transition-all group">
 
             {/* Flèches de réordonnement */}
             <div className="flex flex-col pl-2 py-1 gap-0.5 flex-shrink-0">
               <button
                 disabled={idx === 0}
                 onClick={() => onDeplacer(seq, 'haut', sequences)}
-                className="p-0.5 rounded hover:bg-slate-100 disabled:opacity-20 disabled:cursor-not-allowed text-slate-400">
+                className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-20 disabled:cursor-not-allowed text-slate-400">
                 <ArrowUp className="w-3 h-3" />
               </button>
               <button
                 disabled={idx === sequences.length - 1}
                 onClick={() => onDeplacer(seq, 'bas', sequences)}
-                className="p-0.5 rounded hover:bg-slate-100 disabled:opacity-20 disabled:cursor-not-allowed text-slate-400">
+                className="p-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-20 disabled:cursor-not-allowed text-slate-400">
                 <ArrowDown className="w-3 h-3" />
               </button>
             </div>
@@ -116,11 +116,11 @@ function GroupeMatiere({ matiere, sequences, onNaviguer, onDeplacer }) {
             {/* Contenu */}
             <button onClick={() => onNaviguer(seq.id)}
               className="flex-1 flex items-center gap-3 py-3 pr-4 text-left min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 text-slate-500 text-xs font-bold">
+              <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 text-slate-500 dark:text-slate-400 text-xs font-bold">
                 {seq.ordre}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-medium text-slate-800 truncate">{seq.titre}</p>
+                <p className="font-medium text-slate-800 dark:text-slate-100 truncate">{seq.titre}</p>
                 {seq.description && (
                   <p className="text-xs text-slate-400 truncate mt-0.5">{seq.description}</p>
                 )}
@@ -203,7 +203,7 @@ export default function Sequences() {
       {/* En-tête */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 flex items-center gap-2">
             <BookMarked className="w-6 h-6 text-indigo-600" />
             Séquences pédagogiques
           </h1>
@@ -222,7 +222,7 @@ export default function Sequences() {
       {/* Filtre matière */}
       <Card>
         <div className="flex flex-col gap-1 max-w-xs">
-          <label className="text-xs font-medium text-slate-600">Filtrer par matière</label>
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Filtrer par matière</label>
           <select value={matiereId} onChange={e => setMatiereId(e.target.value)}
             className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="">Toutes les matières</option>

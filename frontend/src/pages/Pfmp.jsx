@@ -10,10 +10,10 @@ import Card, { CardHeader } from '../components/ui/Card.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
 const STATUT_STYLE = {
-  PLANIFIEE: 'bg-slate-100 text-slate-600',
-  EN_COURS:  'bg-blue-100 text-blue-700',
-  TERMINEE:  'bg-amber-100 text-amber-700',
-  VALIDEE:   'bg-green-100 text-green-700',
+  PLANIFIEE: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+  EN_COURS:  'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  TERMINEE:  'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  VALIDEE:   'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
 };
 const STATUT_LABEL = {
   PLANIFIEE: 'Planifiée', EN_COURS: 'En cours', TERMINEE: 'Terminée', VALIDEE: 'Validée',
@@ -49,12 +49,12 @@ function FormPfmp({ classes, onFermer, onCree }) {
 
   const champ = (label, key, type = 'text', required = false) => (
     <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">{label}{required && ' *'}</label>
+      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">{label}{required && ' *'}</label>
       <input
         type={type} value={form[key]}
         onChange={e => set(key, e.target.value)}
         required={required}
-        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
     </div>
   );
@@ -62,29 +62,29 @@ function FormPfmp({ classes, onFermer, onCree }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-900">Nouvelle PFMP</h2>
-          <button onClick={onFermer}><X className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">Nouvelle PFMP</h2>
+          <button onClick={onFermer}><X className="w-5 h-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" /></button>
         </div>
         <form onSubmit={e => { e.preventDefault(); mutation.mutate(); }} className="p-6 space-y-6">
 
           {/* Élève */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Élève</h3>
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Élève</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Classe *</label>
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Classe *</label>
                 <select value={form.classeId} onChange={e => set('classeId', e.target.value)} required
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                   <option value="">Choisir…</option>
                   {classes.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Élève *</label>
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Élève *</label>
                 <select value={form.eleveId} onChange={e => set('eleveId', e.target.value)} required
                   disabled={!form.classeId}
-                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-50">
+                  className="w-full border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-50 dark:disabled:bg-slate-800">
                   <option value="">Choisir…</option>
                   {eleves.map(e => <option key={e.id} value={e.id}>{e.nom} {e.prenom}</option>)}
                 </select>
@@ -94,7 +94,7 @@ function FormPfmp({ classes, onFermer, onCree }) {
 
           {/* Période */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Période</h3>
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Période</h3>
             <div className="grid grid-cols-3 gap-3">
               {champ('N° PFMP', 'numero', 'number')}
               {champ('Date début *', 'dateDebut', 'date', true)}
@@ -105,7 +105,7 @@ function FormPfmp({ classes, onFermer, onCree }) {
 
           {/* Entreprise */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Entreprise</h3>
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Entreprise</h3>
             {champ('Nom de l\'entreprise *', 'entrepriseNom', 'text', true)}
             <div className="grid grid-cols-2 gap-3">
               {champ('Secteur d\'activité', 'entrepriseSecteur')}
@@ -115,7 +115,7 @@ function FormPfmp({ classes, onFermer, onCree }) {
 
           {/* Tuteur */}
           <section className="space-y-3">
-            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Maître de stage</h3>
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Maître de stage</h3>
             <div className="grid grid-cols-3 gap-3">
               {champ('Nom du tuteur', 'tuteurNom')}
               {champ('Email', 'tuteurEmail', 'email')}
@@ -128,7 +128,7 @@ function FormPfmp({ classes, onFermer, onCree }) {
           )}
 
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onFermer} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg border border-slate-200">Annuler</button>
+            <button type="button" onClick={onFermer} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">Annuler</button>
             <button type="submit" disabled={mutation.isPending}
               className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50">
               {mutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -150,14 +150,14 @@ function CartePfmp({ pfmp, onClick }) {
 
   return (
     <button onClick={onClick}
-      className="w-full flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-left group">
+      className="w-full flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:shadow-sm transition-all text-left group">
       <div className="flex items-center gap-4 min-w-0">
-        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
-          <Building2 className="w-5 h-5 text-indigo-600" />
+        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0">
+          <Building2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
         </div>
         <div className="min-w-0">
-          <p className="font-semibold text-slate-800 truncate">{pfmp.entrepriseNom}</p>
-          <p className="text-sm text-slate-500 truncate">
+          <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{pfmp.entrepriseNom}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
             PFMP {pfmp.numero} — {pfmp.eleve.nom} {pfmp.eleve.prenom}
             {pfmp.classe && ` · ${pfmp.classe.nom}`}
           </p>
@@ -215,10 +215,10 @@ export default function Pfmp() {
       {/* En-tête */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-indigo-600" /> PFMP
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 flex items-center gap-2">
+            <Building2 className="w-6 h-6 text-indigo-600 dark:text-indigo-400" /> PFMP
           </h1>
-          <p className="text-slate-500 text-sm mt-0.5">Périodes de Formation en Milieu Professionnel</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">Périodes de Formation en Milieu Professionnel</p>
         </div>
         {estEnseignant && (
           <button onClick={() => setModalOuvert(true)}
@@ -233,17 +233,17 @@ export default function Pfmp() {
         <Card>
           <div className="flex flex-wrap gap-4">
             <div className="flex flex-col gap-1 min-w-[180px]">
-              <label className="text-xs font-medium text-slate-600">Classe</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Classe</label>
               <select value={classeId} onChange={e => setClasseId(e.target.value)}
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Toutes les classes</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.nom}</option>)}
               </select>
             </div>
             <div className="flex flex-col gap-1 min-w-[160px]">
-              <label className="text-xs font-medium text-slate-600">Statut</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">Statut</label>
               <select value={statut} onChange={e => setStatut(e.target.value)}
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                className="border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <option value="">Tous les statuts</option>
                 {Object.entries(STATUT_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>

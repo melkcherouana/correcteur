@@ -46,7 +46,7 @@ function FormulaireClasse({ onSubmit, onClose, loading, erreurApi, annees }) {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Année scolaire</label>
             {annees.length === 0 ? (
-              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+              <p className="text-xs text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
                 Aucune année scolaire n'existe encore. Créez-en une depuis « Paramètres &gt; Années scolaires » avant de créer une classe.
               </p>
             ) : (
@@ -160,11 +160,11 @@ export default function Classes() {
             <button
               key={classe.id}
               onClick={() => navigate(`/classes/${classe.id}`)}
-              className="text-left bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all p-5 group"
+              className="text-left bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all p-5 group"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                  <GraduationCap className="w-5 h-5 text-indigo-600" />
+                <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors">
+                  <GraduationCap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 mt-1 transition-colors" />
               </div>
