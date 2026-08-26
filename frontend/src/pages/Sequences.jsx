@@ -165,14 +165,6 @@ export default function Sequences() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['sequences'] }),
   });
 
-  // Grouper par matière
-  const parMatiere = sequences.reduce((acc, seq) => {
-    const key = seq.matiereId;
-    if (!acc[key]) acc[key] = { matiere: seq.matiere, sequences: [] };
-    acc[key].sequences.push(seq);
-    return acc;
-  }, {});
-
   const deplacer = (seq, direction, groupe) => {
     const idx = groupe.findIndex(s => s.id === seq.id);
     const autreIdx = direction === 'haut' ? idx - 1 : idx + 1;

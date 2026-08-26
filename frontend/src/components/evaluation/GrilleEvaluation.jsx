@@ -65,7 +65,7 @@ export default function GrilleEvaluation({ grille = [], onSauvegarder, lectureSe
     const map = {};
     grille.forEach(({ eleve, note }) => { map[eleve.id] = note?.valeur ?? null; });
     setPaliers(map);
-  }, [grille]);
+  }, [grille, modifie]);
 
   const choisirPalier = (eleveId, valeur) => {
     if (lectureSeule) return;

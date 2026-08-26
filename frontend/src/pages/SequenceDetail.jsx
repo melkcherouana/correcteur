@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
-  ChevronLeft, BookMarked, Target, ClipboardList,
+  ChevronLeft, Target, ClipboardList,
   Pencil, Save, Loader2, Plus, ChevronRight, Trash2, AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -18,14 +18,6 @@ const TYPE_LABELS = {
   DEVOIR_SURVEILLE: 'DS', TRAVAUX_PRATIQUES: 'TP',
   ORAL: 'Oral', PROJET: 'Projet', CCF: 'CCF',
 };
-
-const NIV_COULEUR = {
-  NON_ACQUIS: 'bg-red-100 text-red-700',
-  EN_COURS:   'bg-yellow-100 text-yellow-700',
-  ACQUIS:     'bg-green-100 text-green-700',
-  DEPASSE:    'bg-indigo-100 text-indigo-700',
-};
-const NIV_LABEL = { NON_ACQUIS: 'Non acquis', EN_COURS: 'En cours', ACQUIS: 'Acquis', DEPASSE: 'Dépassé' };
 
 // ─── Champ éditable simple ────────────────────────────────────────────────────
 

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   Sparkles, BookOpen, Target, MessageSquare, Building2,
-  AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Download, FileText,
+  AlertCircle, CheckCircle2, ChevronDown, ChevronUp, FileText,
   GraduationCap, ClipboardCheck, Wrench,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -524,134 +524,9 @@ function OngletQuestionsEntretien() {
   );
 }
 
-// ─── Composant : carte document commercial ────────────────────────────────────
-
-const TYPE_DOC_LABELS = {
-  facture:          'Facture',
-  devis:            'Devis',
-  bon_de_commande:  'Bon de commande',
-  bon_de_livraison: 'Bon de livraison',
-  bon_de_retour:    'Bon de retour',
-};
-
-const TYPE_DOC_COULEURS = {
-  facture:          'bg-red-100 text-red-700 border-red-200',
-  devis:            'bg-blue-100 text-blue-700 border-blue-200',
-  bon_de_commande:  'bg-purple-100 text-purple-700 border-purple-200',
-  bon_de_livraison: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  bon_de_retour:    'bg-amber-100 text-amber-700 border-amber-200',
-};
-
-function DocCommercialCard({ doc }) {
-  const [ouvert, setOuvert] = useState(false);
-  const couleur = TYPE_DOC_COULEURS[doc.type] ?? 'bg-gray-100 text-gray-700 border-gray-200';
-  const label   = TYPE_DOC_LABELS[doc.type] ?? doc.type;
-
-  return (
-    <div className="bg-white">
-      <button
-        onClick={() => setOuvert((v) => !v)}
-        className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors text-left"
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <span className={`text-xs font-bold px-2 py-0.5 rounded border ${couleur} flex-shrink-0`}>
-            {label.toUpperCase()}
-          </span>
-          <span className="text-sm font-semibold text-gray-900 truncate">{doc.numero}</span>
-          <span className="text-xs text-gray-400 hidden sm:block">{doc.date}</span>
-          {doc.objet && (
-            <span className="text-xs text-gray-500 truncate hidden md:block">— {doc.objet}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          {doc.totalTTC != null && (
-            <span className="text-sm font-bold text-gray-900">
-              {doc.totalTTC.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
-            </span>
-          )}
-          {ouvert ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-        </div>
-      </button>
-
-      {ouvert && (
-        <div className="px-5 pb-5 space-y-4 border-t border-gray-50">
-          {/* Parties */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
-            {[{ titre: 'Émetteur', data: doc.emetteur }, { titre: 'Destinataire', data: doc.destinataire }].map(({ titre, data }) => (
-              <div key={titre} className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs font-semibold text-gray-400 mb-1">{titre}</p>
-                <p className="text-sm font-semibold text-gray-900">{data?.raisonSociale}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{data?.adresse}</p>
-                <p className="text-xs text-gray-500">{data?.codePostal} {data?.ville}</p>
-                {data?.contact && <p className="text-xs text-gray-400 mt-0.5">Contact : {data.contact}</p>}
-                {data?.siret  && <p className="text-xs text-gray-400">SIRET : {data.siret}</p>}
-              </div>
-            ))}
-          </div>
-
-          {/* Lignes */}
-          {doc.lignes?.length > 0 && (
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-gray-800 text-white">
-                    <th className="text-left px-3 py-2 font-medium">Réf.</th>
-                    <th className="text-left px-3 py-2 font-medium">Désignation</th>
-                    <th className="text-right px-3 py-2 font-medium">Qté</th>
-                    <th className="text-right px-3 py-2 font-medium">P.U. HT</th>
-                    <th className="text-right px-3 py-2 font-medium">Total HT</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {doc.lignes.map((l, i) => (
-                    <tr key={i} className={i % 2 === 0 ? '' : 'bg-gray-50'}>
-                      <td className="px-3 py-2 text-gray-400">{l.reference}</td>
-                      <td className="px-3 py-2 text-gray-800 font-medium">{l.designation}</td>
-                      <td className="px-3 py-2 text-right text-gray-600">{l.quantite} {l.unite}</td>
-                      <td className="px-3 py-2 text-right text-gray-600">
-                        {l.prixUnitaireHT?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
-                      </td>
-                      <td className="px-3 py-2 text-right font-semibold text-gray-900">
-                        {l.totalHT?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Totaux */}
-          <div className="flex justify-end">
-            <div className="text-xs space-y-1 min-w-[220px]">
-              <div className="flex justify-between text-gray-500">
-                <span>Total HT</span>
-                <span>{doc.totalHT?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
-              </div>
-              <div className="flex justify-between text-gray-500">
-                <span>TVA ({doc.tauxTVA ?? 20} %)</span>
-                <span>{doc.totalTVA?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
-              </div>
-              <div className={`flex justify-between font-bold text-sm px-2 py-1.5 rounded ${TYPE_DOC_COULEURS[doc.type] ?? 'bg-gray-100'} border`}>
-                <span>Total TTC</span>
-                <span>{doc.totalTTC?.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</span>
-              </div>
-            </div>
-          </div>
-
-          {doc.conditions && (
-            <p className="text-xs text-gray-400 italic">{doc.conditions}</p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── 4. Dossier situation professionnelle complet ─────────────────────────────
 
 const TYPE_DOC_LABELS_LU = { catalogue: 'Catalogue / Tarif', bon_commande_client: 'Bon de commande', correspondance: 'Correspondance', fiche_client: 'Fiche client' };
-const ANNEXE_LABELS = { facture: 'Facture', fiche_stock: 'Fiche de stock', bon_livraison: 'Bon de livraison' };
 const ANNEXE_COULEURS = { facture: 'bg-red-100 text-red-700', fiche_stock: 'bg-green-100 text-green-700', bon_livraison: 'bg-indigo-100 text-indigo-700' };
 
 function OngletScenario() {
@@ -1076,7 +951,6 @@ function OngletCours() {
   const [filiere, setFiliere] = useState('');
   const [niveau, setNiveau] = useState('BAC PRO');
   const [dureeHeures, setDureeHeures] = useState(2);
-  const [corrigeVisible, setCorrigeVisible] = useState(false);
 
   const { mutate, data, isPending, error, reset } = useMutation({
     mutationFn: () =>
@@ -1123,7 +997,7 @@ function OngletCours() {
 
           <div className="flex items-center gap-3">
             <BoutonGenerer
-              onClick={() => { reset(); setCorrigeVisible(false); mutate(); }}
+              onClick={() => { reset(); mutate(); }}
               loading={isPending}
               disabled={!competenceId}
               label="Générer le cours"

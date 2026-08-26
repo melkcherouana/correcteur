@@ -65,7 +65,7 @@ function BoutonPdf({ eleveId, trimestre }) {
 
 const NIVEAU_SCORE = { NON_ACQUIS: 0, EN_COURS: 33, ACQUIS: 66, DEPASSE: 100 };
 
-function RadarBilan({ competencesParMatiere, eleve, stats }) {
+function RadarBilan({ competencesParMatiere, eleve }) {
   const radarData = competencesParMatiere.map((pm) => ({
     matiere: pm.matiere.code,
     nomComplet: pm.matiere.nom,
@@ -406,7 +406,7 @@ function BulletinEleve({ eleveId, peutGenererCommentaire = false }) {
 
       {/* Radar par pôle */}
       {competencesParMatiere.length >= 3 && (
-        <RadarBilan competencesParMatiere={competencesParMatiere} eleve={eleve} stats={stats} />
+        <RadarBilan competencesParMatiere={competencesParMatiere} eleve={eleve} />
       )}
 
       {/* Synthèse IA (enseignant/admin uniquement) */}

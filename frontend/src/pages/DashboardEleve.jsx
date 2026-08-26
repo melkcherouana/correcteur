@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
-  Award, AlertTriangle, TrendingUp, BookOpen,
+  Award, AlertTriangle, TrendingUp,
   ArrowRight, ClipboardList, Target, Upload, CheckCircle2, Clock,
 } from 'lucide-react';
 import { format } from 'date-fns';

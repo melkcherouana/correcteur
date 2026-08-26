@@ -4,7 +4,7 @@ import {
   LogIn, ClipboardList, Target, TrendingUp, ScrollText,
   Plus, Upload, Sparkles, PenLine, BarChart2,
   UserPlus, School, CalendarDays, FileSpreadsheet,
-  ChevronRight, CheckCircle2, Info, ClipboardCheck,
+  CheckCircle2, Info, ClipboardCheck,
 } from 'lucide-react';
 import clsx from 'clsx';
 

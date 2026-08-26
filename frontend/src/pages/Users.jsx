@@ -857,7 +857,7 @@ export default function Users() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   });
 
-  const utilisateurs = data?.utilisateurs ?? [];
+  const utilisateurs = useMemo(() => data?.utilisateurs ?? [], [data]);
   const total = data?.total ?? 0;
 
   /* Regroupement par classe */

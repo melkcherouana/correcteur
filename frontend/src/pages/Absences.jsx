@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import {
   CalendarDays, AlertTriangle, CheckCircle2, Clock, Download,
-  ChevronDown, ChevronUp, UserCheck, UserX, Loader2, Save, Pencil,
+  ChevronDown, ChevronUp, UserCheck, UserX, Loader2, Save,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  ChevronLeft, ClipboardList, FileText, Sparkles, CheckCircle2,
+  ChevronLeft, FileText, Sparkles, CheckCircle2,
   Upload, AlertCircle, ChevronDown, ChevronUp, Clock, MessageSquare,
   Download, Trash2, BookOpen, Target, Save, Eye,
 } from 'lucide-react';
@@ -25,7 +25,6 @@ const TYPE_LABELS = {
 // ─── Panneau sujet / énoncé ───────────────────────────────────────────────────
 
 function SujetPanel({ evaluationId, peutGerer }) {
-  const qc       = useRef(null);
   const inputRef = useRef();
   const [uploading, setUploading] = useState(false);
   const [erreur,    setErreur]    = useState(null);
@@ -457,6 +456,7 @@ const PALIERS_INLINE = Object.entries(PALIERS_CFG).map(([v, cfg]) => ({
   btnCls: cfg.btnCls,
 }));
 
+// eslint-disable-next-line no-unused-vars -- composant conservé pour réutilisation future, pas encore branché dans la page
 function EvaluationRapide({ evaluationId, eleveId, palierActuel, onSauvegarde }) {
   const [palier, setPalier]       = useState(palierActuel ?? null);
   const [sauvegarde, setSauvegarde] = useState(false);
@@ -506,6 +506,7 @@ function EvaluationRapide({ evaluationId, eleveId, palierActuel, onSauvegarde })
   );
 }
 
+// eslint-disable-next-line no-unused-vars -- composant conservé pour réutilisation future, pas encore branché dans la page
 function SoumissionsPanel({ evaluationId, soumissions, grille }) {
   const qc = useQueryClient();
   const [correctionEnCours, setCorrectionEnCours] = useState(null);
@@ -515,6 +516,7 @@ function SoumissionsPanel({ evaluationId, soumissions, grille }) {
   const [questionsOuvertes, setQuestionsOuvertes] = useState({});
 
   // Index palier actuel par eleveId depuis la grille
+  // eslint-disable-next-line no-unused-vars -- calculé pour un futur affichage, pas encore consommé
   const paliersActuels = Object.fromEntries(
     (grille ?? []).map(({ eleve, note }) => [eleve.id, note?.valeur ?? null])
   );

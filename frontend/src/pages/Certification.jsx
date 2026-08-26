@@ -5,8 +5,7 @@ import {
   ResponsiveContainer, Tooltip, Legend,
 } from 'recharts';
 import {
-  Award, Download, Sparkles, CheckCircle2, AlertCircle,
-  ChevronDown, ChevronUp, RefreshCw,
+  Award, Download, Sparkles, CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';

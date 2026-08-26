@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
-  ChevronLeft, GraduationCap, Calendar, CheckCircle2,
+  ChevronLeft, Calendar, CheckCircle2,
   Pencil, Save, Loader2, AlertCircle, Target,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -26,7 +26,7 @@ const PALIER_COULEUR = {
 
 function CelluleNote({ eleveId, evaluationId, noteInitiale, commentaireInitial, lectureSeule, onSaved }) {
   const [valeur, setValeur]     = useState(noteInitiale ?? '');
-  const [comment, setComment]   = useState(commentaireInitial ?? '');
+  const [comment]                = useState(commentaireInitial ?? '');
   const [modifie, setModifie]   = useState(false);
 
   const mutation = useMutation({

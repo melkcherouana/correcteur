@@ -7,7 +7,7 @@ import {
 import {
   Users, GraduationCap, ClipboardList, BookOpen,
   Target, Upload, ScrollText, FileBarChart2,
-  TrendingUp, ShieldCheck,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
