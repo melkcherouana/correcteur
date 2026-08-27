@@ -32,6 +32,17 @@ function CelluleNiveau({ eleveId, competenceId, niveau, onModifier }) {
   );
 }
 
+// Couleurs alternées par pôle pour que deux pôles voisins soient visuellement
+// distincts même quand leur titre est tronqué (sinon tous les pôles se
+// confondent dans la même teinte indigo)
+const PALETTE_POLES = [
+  { text: 'text-indigo-600', bg: 'bg-indigo-50/60', border: 'border-indigo-100' },
+  { text: 'text-teal-600',   bg: 'bg-teal-50/60',   border: 'border-teal-100' },
+  { text: 'text-amber-600',  bg: 'bg-amber-50/60',  border: 'border-amber-100' },
+  { text: 'text-rose-600',   bg: 'bg-rose-50/60',   border: 'border-rose-100' },
+  { text: 'text-sky-600',    bg: 'bg-sky-50/60',    border: 'border-sky-100' },
+];
+
 // Regroupe une liste de compétences déjà triées par pôle en blocs contigus
 // (l'ordre backend garantit que les compétences d'un même pôle se suivent) —
 // { poleId: null } sert de bloc « Hors pôle » pour les compétences sans pôle.
@@ -166,6 +177,9 @@ function VueEnseignant() {
   });
 
   const groupes = tableau ? grouperParPole(tableau.competences) : [];
+  // Colonnes qui débutent un nouveau groupe (hors le tout premier) — reçoivent
+  // une bordure verticale marquée pour matérialiser la séparation entre pôles
+  const debutsDeGroupe = new Set(groupes.slice(1).map((g) => g.competences[0].id));
 
   const majNiveau = useMutation({
     mutationFn: ({ eleveId, competenceId, niveau }) =>
@@ -275,18 +289,21 @@ function VueEnseignant() {
                 {!(groupes.length === 1 && groupes[0].poleId === null) && (
                   <tr className="border-t border-gray-50">
                     <th className="sticky left-0 bg-white" />
-                    {groupes.map((g) => (
-                      <th
-                        key={g.poleId ?? 'hors-pole'}
-                        colSpan={g.competences.length}
-                        title={g.titre}
-                        className={`px-1 py-1 text-center text-[10px] font-semibold uppercase tracking-wide border-b truncate max-w-0 cursor-help ${
-                          g.poleId ? 'text-indigo-600 border-indigo-100 bg-indigo-50/50' : 'text-gray-400 border-gray-100'
-                        }`}
-                      >
-                        {g.titre}
-                      </th>
-                    ))}
+                    {groupes.map((g, i) => {
+                      const couleur = g.poleId ? PALETTE_POLES[i % PALETTE_POLES.length] : null;
+                      return (
+                        <th
+                          key={g.poleId ?? 'hors-pole'}
+                          colSpan={g.competences.length}
+                          title={g.titre}
+                          className={`px-1 py-1 text-center text-[10px] font-semibold uppercase tracking-wide border-b-2 truncate max-w-0 cursor-help ${
+                            i > 0 ? 'border-l-2 border-l-gray-300' : ''
+                          } ${couleur ? `${couleur.text} ${couleur.border} ${couleur.bg}` : 'text-gray-400 border-gray-100'}`}
+                        >
+                          {g.titre}
+                        </th>
+                      );
+                    })}
                   </tr>
                 )}
                 <tr className="border-t border-gray-50">
@@ -296,7 +313,9 @@ function VueEnseignant() {
                   {tableau.competences.map((c) => (
                     <th
                       key={c.id}
-                      className="px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help"
+                      className={`px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help ${
+                        debutsDeGroupe.has(c.id) ? 'border-l-2 border-gray-300' : ''
+                      }`}
                       title={c.description}
                     >
                       {c.code}
@@ -312,7 +331,10 @@ function VueEnseignant() {
                       {eleve.nom} {eleve.prenom}
                     </td>
                     {tableau.competences.map((c) => (
-                      <td key={c.id} className="px-1 py-2 text-center">
+                      <td
+                        key={c.id}
+                        className={`px-1 py-2 text-center ${debutsDeGroupe.has(c.id) ? 'border-l-2 border-gray-200' : ''}`}
+                      >
                         <CelluleNiveau
                           eleveId={eleve.id}
                           competenceId={c.id}
@@ -336,7 +358,10 @@ function VueEnseignant() {
                     ).length;
                     const pct = total > 0 ? Math.round((acquis / total) * 100) : 0;
                     return (
-                      <td key={c.id} className="px-1 py-2 text-center">
+                      <td
+                        key={c.id}
+                        className={`px-1 py-2 text-center ${debutsDeGroupe.has(c.id) ? 'border-l-2 border-gray-200' : ''}`}
+                      >
                         <span
                           className={`text-[11px] font-bold ${
                             pct >= 70 ? 'text-emerald-600' : pct >= 40 ? 'text-amber-600' : 'text-red-500'
