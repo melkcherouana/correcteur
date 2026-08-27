@@ -85,6 +85,14 @@ const NAV = {
     { label: 'Accueil',       to: '/',     icon: Home,  exact: true },
     { label: 'Utilisateurs',  to: '/users', icon: Users },
     {
+      label: 'Bilans',
+      icon: ScrollText,
+      children: [
+        { label: 'Bulletins',     to: '/bulletins'     },
+        { label: 'Certification', to: '/certification' },
+      ],
+    },
+    {
       label: 'Suivi élèves',
       icon: ClipboardCheck,
       children: [
