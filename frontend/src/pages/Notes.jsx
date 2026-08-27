@@ -161,17 +161,17 @@ function TableauNotesClasse({ classeId, onSelectEleve }) {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm border border-gray-200">
           <thead>
-            <tr className="border-t border-gray-50">
-              <th className="text-left px-4 py-2 text-[11px] font-semibold text-gray-400 uppercase min-w-[130px] sticky left-0 bg-white">
+            <tr>
+              <th className="text-left px-4 py-2 text-[11px] font-semibold text-gray-400 uppercase min-w-[130px] sticky left-0 bg-white border border-gray-200">
                 Élève
               </th>
               {tableau.evaluations.map((e) => (
                 <th
                   key={e.id}
                   title={`${e.titre} · ${TYPE_LABELS[e.type] ?? e.type}${e.datePassage ? ` · ${format(new Date(e.datePassage), 'd MMM yyyy', { locale: fr })}` : ''}`}
-                  className="px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help whitespace-nowrap"
+                  className="px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help whitespace-nowrap border border-gray-200"
                 >
                   {e.datePassage ? format(new Date(e.datePassage), 'd/MM', { locale: fr }) : '—'}
                 </th>
@@ -179,10 +179,10 @@ function TableauNotesClasse({ classeId, onSelectEleve }) {
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-50">
+          <tbody>
             {tableau.eleves.map((eleve) => (
               <tr key={eleve.id} className="hover:bg-gray-50/50">
-                <td className="px-4 py-2 sticky left-0 bg-white">
+                <td className="px-4 py-2 sticky left-0 bg-white border border-gray-200">
                   <button
                     onClick={() => onSelectEleve(eleve.id)}
                     className="font-medium text-gray-800 hover:text-indigo-600 hover:underline text-left"
@@ -191,7 +191,7 @@ function TableauNotesClasse({ classeId, onSelectEleve }) {
                   </button>
                 </td>
                 {tableau.evaluations.map((e) => (
-                  <td key={e.id} className="px-1 py-2 text-center">
+                  <td key={e.id} className="px-1 py-2 text-center border border-gray-200">
                     <CelluleNote valeur={tableau.notes[eleve.id]?.[e.id] ?? null} noteMax={e.noteMax} />
                   </td>
                 ))}
@@ -231,14 +231,14 @@ function GrilleNotesEleve({ notes }) {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm border border-gray-200">
           <thead>
-            <tr className="border-t border-gray-50">
+            <tr>
               {notesTriees.map((n) => (
                 <th
                   key={n.id}
                   title={`${n.evaluation?.titre ?? '—'} · ${TYPE_LABELS[n.evaluation?.type] ?? n.evaluation?.type ?? ''}${n.evaluation?.datePassage ? ` · ${format(new Date(n.evaluation.datePassage), 'd MMM yyyy', { locale: fr })}` : ''}`}
-                  className="px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help whitespace-nowrap"
+                  className="px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help whitespace-nowrap border border-gray-200"
                 >
                   {n.evaluation?.datePassage ? format(new Date(n.evaluation.datePassage), 'd/MM', { locale: fr }) : '—'}
                 </th>
@@ -248,7 +248,7 @@ function GrilleNotesEleve({ notes }) {
           <tbody>
             <tr>
               {notesTriees.map((n) => (
-                <td key={n.id} className="px-1 py-2 text-center">
+                <td key={n.id} className="px-1 py-2 text-center border border-gray-200">
                   <CelluleNote valeur={n.valeur} noteMax={n.evaluation?.noteMax ?? 20} />
                 </td>
               ))}

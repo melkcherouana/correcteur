@@ -283,12 +283,12 @@ function VueEnseignant() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm border border-gray-200">
               <thead>
                 {/* Regroupement par pôle — une seule ligne si tout est « Hors pôle » */}
                 {!(groupes.length === 1 && groupes[0].poleId === null) && (
                   <tr className="border-t border-gray-50">
-                    <th className="sticky left-0 bg-white" />
+                    <th className="sticky left-0 bg-white border border-gray-200" />
                     {groupes.map((g, i) => {
                       const couleur = g.poleId ? PALETTE_POLES[i % PALETTE_POLES.length] : null;
                       return (
@@ -296,9 +296,9 @@ function VueEnseignant() {
                           key={g.poleId ?? 'hors-pole'}
                           colSpan={g.competences.length}
                           title={g.titre}
-                          className={`px-1 py-1 text-center text-[10px] font-semibold uppercase tracking-wide border-b-2 truncate max-w-0 cursor-help ${
+                          className={`px-1 py-1 text-center text-[10px] font-semibold uppercase tracking-wide border border-gray-200 truncate max-w-0 cursor-help ${
                             i > 0 ? 'border-l-2 border-l-gray-300' : ''
-                          } ${couleur ? `${couleur.text} ${couleur.border} ${couleur.bg}` : 'text-gray-400 border-gray-100'}`}
+                          } ${couleur ? `${couleur.text} ${couleur.border} ${couleur.bg}` : 'text-gray-400'}`}
                         >
                           {g.titre}
                         </th>
@@ -307,14 +307,14 @@ function VueEnseignant() {
                   </tr>
                 )}
                 <tr className="border-t border-gray-50">
-                  <th className="text-left px-4 py-2 text-[11px] font-semibold text-gray-400 uppercase min-w-[130px] sticky left-0 bg-white">
+                  <th className="text-left px-4 py-2 text-[11px] font-semibold text-gray-400 uppercase min-w-[130px] sticky left-0 bg-white border border-gray-200">
                     Élève
                   </th>
                   {tableau.competences.map((c) => (
                     <th
                       key={c.id}
-                      className={`px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help ${
-                        debutsDeGroupe.has(c.id) ? 'border-l-2 border-gray-300' : ''
+                      className={`px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help border border-gray-200 ${
+                        debutsDeGroupe.has(c.id) ? 'border-l-2 border-l-gray-400' : ''
                       }`}
                       title={c.description}
                     >
@@ -324,16 +324,16 @@ function VueEnseignant() {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-50">
+              <tbody>
                 {tableau.eleves.map((eleve) => (
                   <tr key={eleve.id} className="hover:bg-gray-50/50">
-                    <td className="px-4 py-2 font-medium text-gray-800 sticky left-0 bg-white">
+                    <td className="px-4 py-2 font-medium text-gray-800 sticky left-0 bg-white border border-gray-200">
                       {eleve.nom} {eleve.prenom}
                     </td>
                     {tableau.competences.map((c) => (
                       <td
                         key={c.id}
-                        className={`px-1 py-2 text-center ${debutsDeGroupe.has(c.id) ? 'border-l-2 border-gray-200' : ''}`}
+                        className={`px-1 py-2 text-center border border-gray-200 ${debutsDeGroupe.has(c.id) ? 'border-l-2 border-l-gray-400' : ''}`}
                       >
                         <CelluleNiveau
                           eleveId={eleve.id}
@@ -349,8 +349,8 @@ function VueEnseignant() {
                 ))}
 
                 {/* Ligne statistiques */}
-                <tr className="border-t-2 border-gray-100 bg-gray-50/60">
-                  <td className="px-4 py-2 text-[11px] font-semibold text-gray-400 uppercase sticky left-0 bg-gray-50/60">% Acq.+</td>
+                <tr className="border-t-2 border-gray-200 bg-gray-50/60">
+                  <td className="px-4 py-2 text-[11px] font-semibold text-gray-400 uppercase sticky left-0 bg-gray-50/60 border border-gray-200">% Acq.+</td>
                   {tableau.competences.map((c) => {
                     const total = tableau.eleves.length;
                     const acquis = tableau.eleves.filter((e) =>
@@ -360,7 +360,7 @@ function VueEnseignant() {
                     return (
                       <td
                         key={c.id}
-                        className={`px-1 py-2 text-center ${debutsDeGroupe.has(c.id) ? 'border-l-2 border-gray-200' : ''}`}
+                        className={`px-1 py-2 text-center border border-gray-200 ${debutsDeGroupe.has(c.id) ? 'border-l-2 border-l-gray-400' : ''}`}
                       >
                         <span
                           className={`text-[11px] font-bold ${
