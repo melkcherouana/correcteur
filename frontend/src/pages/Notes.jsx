@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Star, TrendingUp, BarChart2, Download } from 'lucide-react';
+import { BookOpen, Star, TrendingUp, BarChart2, Download, Copy, Check, Table2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -15,6 +15,11 @@ const PALIERS = {
   2: { label: 'Débrouillé',  classe: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300' },
   3: { label: 'Averti',      classe: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300' },
   4: { label: 'Expert',      classe: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' },
+};
+
+const TYPE_LABELS = {
+  DEVOIR_SURVEILLE: 'Devoir surveillé', TRAVAUX_PRATIQUES: 'Travaux pratiques',
+  ORAL: 'Oral', PROJET: 'Projet', CCF: 'CCF',
 };
 
 function PalierBadge({ valeur }) {
@@ -51,6 +56,147 @@ function DistributionPaliers({ notes }) {
         </div>
       ))}
     </div>
+  );
+}
+
+// ─── Cellule note compacte (grille classe × évaluations) ─────────────────────
+
+function CelluleNote({ valeur }) {
+  if (valeur === null || valeur === undefined) {
+    return (
+      <span className="inline-flex items-center justify-center w-8 h-6 rounded text-[11px] text-gray-300 border border-gray-100">
+        —
+      </span>
+    );
+  }
+  const p = PALIERS[valeur];
+  return (
+    <span
+      title={p?.label ?? String(valeur)}
+      className={`inline-flex items-center justify-center w-8 h-6 rounded text-[11px] font-bold ${p?.classe ?? 'bg-gray-100 text-gray-500'}`}
+    >
+      {valeur}
+    </span>
+  );
+}
+
+// ─── Vue tableau : grille classe × évaluations, chiffrée ──────────────────────
+
+function TableauNotesClasse({ classeId, onSelectEleve }) {
+  const [copie, setCopie] = useState(false);
+
+  const { data: tableau, isLoading } = useQuery({
+    queryKey: ['notes-tableau', classeId],
+    queryFn: () => api.get('/notes/tableau-classe', { params: { classeId } }).then((r) => r.data),
+    enabled: !!classeId,
+  });
+
+  const copierPourPronote = async () => {
+    if (!tableau) return;
+    const lignes = [
+      ['Élève', ...tableau.evaluations.map((e) => e.titre)].join('\t'),
+      ...tableau.eleves.map((eleve) => {
+        const valeurs = tableau.evaluations.map((e) => {
+          const v = tableau.notes[eleve.id]?.[e.id];
+          return v !== null && v !== undefined ? String(v) : '';
+        });
+        return [`${eleve.nom} ${eleve.prenom}`, ...valeurs].join('\t');
+      }),
+    ];
+    try {
+      await navigator.clipboard.writeText(lignes.join('\n'));
+      setCopie(true);
+      setTimeout(() => setCopie(false), 2000);
+    } catch {
+      alert('Impossible de copier automatiquement — sélectionnez et copiez le tableau manuellement.');
+    }
+  };
+
+  if (isLoading) return <div className="flex justify-center py-12"><Spinner size="lg" /></div>;
+
+  if (!tableau || tableau.evaluations.length === 0) {
+    return (
+      <Card>
+        <p className="text-sm text-center text-gray-400 py-4">
+          Aucune évaluation créée pour cette classe.
+        </p>
+      </Card>
+    );
+  }
+
+  return (
+    <Card padding={false}>
+      <div className="px-6 pt-6 pb-4">
+        <CardHeader
+          title="Tableau de bord des notes"
+          subtitle={`${tableau.eleves.length} élève${tableau.eleves.length !== 1 ? 's' : ''} · ${tableau.evaluations.length} évaluation${tableau.evaluations.length !== 1 ? 's' : ''} — cliquer sur un élève pour voir le détail`}
+          action={
+            <button
+              onClick={copierPourPronote}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                copie
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+              title="Copie une grille (élèves × évaluations) au format tableur, à coller directement dans Pronote ou Excel"
+            >
+              {copie ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              {copie ? 'Copié !' : 'Copier pour Pronote'}
+            </button>
+          }
+        />
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-t border-gray-50">
+              <th className="text-left px-4 py-2 text-[11px] font-semibold text-gray-400 uppercase min-w-[130px] sticky left-0 bg-white">
+                Élève
+              </th>
+              {tableau.evaluations.map((e) => (
+                <th
+                  key={e.id}
+                  title={`${e.titre} · ${TYPE_LABELS[e.type] ?? e.type}${e.datePassage ? ` · ${format(new Date(e.datePassage), 'd MMM yyyy', { locale: fr })}` : ''}`}
+                  className="px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help whitespace-nowrap"
+                >
+                  {e.datePassage ? format(new Date(e.datePassage), 'd/MM', { locale: fr }) : '—'}
+                </th>
+              ))}
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-gray-50">
+            {tableau.eleves.map((eleve) => (
+              <tr key={eleve.id} className="hover:bg-gray-50/50">
+                <td className="px-4 py-2 sticky left-0 bg-white">
+                  <button
+                    onClick={() => onSelectEleve(eleve.id)}
+                    className="font-medium text-gray-800 hover:text-indigo-600 hover:underline text-left"
+                  >
+                    {eleve.nom} {eleve.prenom}
+                  </button>
+                </td>
+                {tableau.evaluations.map((e) => (
+                  <td key={e.id} className="px-1 py-2 text-center">
+                    <CelluleNote valeur={tableau.notes[eleve.id]?.[e.id] ?? null} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="px-6 py-4 border-t border-gray-50 flex flex-wrap gap-3">
+        {Object.entries(PALIERS).map(([v, p]) => (
+          <span key={v} className={`text-xs px-2 py-0.5 rounded border border-transparent font-medium ${p.classe}`}>
+            {v} = {p.label}
+          </span>
+        ))}
+        <span className="text-xs px-2 py-0.5 rounded text-gray-400 border border-gray-100">— = Pas de note</span>
+      </div>
+    </Card>
   );
 }
 
@@ -149,11 +295,15 @@ export default function Notes() {
         </Card>
       )}
 
-      {!eleveId && estEnseignant && (
+      {!classeId && estEnseignant && (
         <div className="text-center py-16 text-gray-400">
-          <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Sélectionnez une classe et un élève pour consulter les notes</p>
+          <Table2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">Sélectionnez une classe pour afficher le tableau de bord des notes</p>
         </div>
+      )}
+
+      {classeId && !eleveId && estEnseignant && (
+        <TableauNotesClasse classeId={classeId} onSelectEleve={setEleveId} />
       )}
 
       {isLoading && eleveId && (
@@ -162,6 +312,14 @@ export default function Notes() {
 
       {eleveId && !isLoading && (
         <>
+          {estEnseignant && (
+            <button
+              onClick={() => setEleveId('')}
+              className="text-sm text-gray-500 hover:text-gray-700 underline"
+            >
+              ← Retour au tableau de la classe
+            </button>
+          )}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard titre="Total notes" valeur={notes.length} icone={BookOpen} />
             <StatCard titre="Évaluées" valeur={notees.length} icone={Star} couleur="bg-emerald-500" />

@@ -23,6 +23,42 @@ const enregistrerHistorique = (tx, evaluationId, enseignantId, ancienneNote, nou
     data: { evaluationId, enseignantId, ancienneNote, nouvelleNote, motif },
   });
 
+// ─── Tableau de bord classe × évaluations ─────────────────────────────────────
+
+export const tableauClasse = async (classeId) => {
+  const [eleveRows, evaluations] = await Promise.all([
+    prisma.classeEleve.findMany({
+      where: { classeId },
+      include: { eleve: { select: { id: true, prenom: true, nom: true } } },
+      orderBy: { eleve: { nom: 'asc' } },
+    }),
+    prisma.evaluation.findMany({
+      where: { classeId },
+      select: { id: true, titre: true, type: true, datePassage: true, noteMax: true },
+      orderBy: [{ datePassage: 'asc' }, { createdAt: 'asc' }],
+    }),
+  ]);
+
+  const eleveIds = eleveRows.map((e) => e.eleveId);
+  const evaluationIds = evaluations.map((e) => e.id);
+
+  // critereId: null — seule la note globale de l'évaluation, pas les sous-notes par critère
+  const notes = await prisma.note.findMany({
+    where: { eleveId: { in: eleveIds }, evaluationId: { in: evaluationIds }, critereId: null },
+  });
+
+  const index = {};
+  for (const n of notes) {
+    (index[n.eleveId] ??= {})[n.evaluationId] = n.valeur;
+  }
+
+  return {
+    eleves: eleveRows.map((e) => e.eleve),
+    evaluations,
+    notes: index,
+  };
+};
+
 // ─── Lecture ─────────────────────────────────────────────────────────────────
 
 export const listerNotes = async ({ eleveId, evaluationId, page = 1, limite = 50 } = {}) => {

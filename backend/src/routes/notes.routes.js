@@ -12,6 +12,9 @@ router.get('/', ctrl.lister);
 // GET /api/notes/export-csv — AVANT /:id pour ne pas être intercepté comme un ID
 router.get('/export-csv', autoriser('ADMIN', 'ENSEIGNANT'), ctrl.exportCsv);
 
+// GET /api/notes/tableau-classe?classeId= — tableau de bord élèves × évaluations
+router.get('/tableau-classe', autoriser('ADMIN', 'ENSEIGNANT'), ctrl.tableauClasse);
+
 // GET /api/notes/:id
 router.get('/:id', ctrl.obtenir);
 

@@ -7,6 +7,13 @@ const valider = (req, res) => {
   return true;
 };
 
+export const tableauClasse = async (req, res, next) => {
+  try {
+    if (!req.query.classeId) return res.status(400).json({ message: 'classeId est requis' });
+    res.json(await svc.tableauClasse(req.query.classeId));
+  } catch (err) { next(err); }
+};
+
 export const lister = async (req, res, next) => {
   try {
     const { evaluationId, page, limite } = req.query;
