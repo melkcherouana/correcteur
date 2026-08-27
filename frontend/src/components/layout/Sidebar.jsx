@@ -13,6 +13,7 @@ const NAV = {
   ELEVE: [
     { label: 'Accueil',          to: '/',            icon: Home,          exact: true },
     { label: 'Mes devoirs',      to: '/evaluations', icon: ClipboardList },
+    { label: 'Notes',            to: '/notes',       icon: PenLine },
     {
       label: 'Mes compétences',
       icon: Target,
