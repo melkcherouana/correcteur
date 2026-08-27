@@ -59,23 +59,35 @@ function DistributionPaliers({ notes }) {
   );
 }
 
+// ─── Conversion palier (1-4) → note sur 20 ────────────────────────────────────
+// Même règle que calculerMoyennesParMatiere côté backend (portfolio.service.js) :
+// un entier 1-4 sur une évaluation notée sur plus de 4 est un palier, ramené au
+// prorata sur 20 ; sinon la valeur est déjà sur le barème de l'évaluation.
+function noteSur20(valeur, noteMax) {
+  if (valeur === null || valeur === undefined) return null;
+  const estPalier = Number.isInteger(valeur) && valeur >= 1 && valeur <= 4 && noteMax > 4;
+  const brut = estPalier ? (valeur / 4) * 20 : (valeur / noteMax) * 20;
+  return Math.round(brut * 10) / 10;
+}
+
 // ─── Cellule note compacte (grille classe × évaluations) ─────────────────────
 
-function CelluleNote({ valeur }) {
+function CelluleNote({ valeur, noteMax }) {
   if (valeur === null || valeur === undefined) {
     return (
-      <span className="inline-flex items-center justify-center w-8 h-6 rounded text-[11px] text-gray-300 border border-gray-100">
+      <span className="inline-flex items-center justify-center w-9 h-6 rounded text-[11px] text-gray-300 border border-gray-100">
         —
       </span>
     );
   }
   const p = PALIERS[valeur];
+  const sur20 = noteSur20(valeur, noteMax);
   return (
     <span
-      title={p?.label ?? String(valeur)}
-      className={`inline-flex items-center justify-center w-8 h-6 rounded text-[11px] font-bold ${p?.classe ?? 'bg-gray-100 text-gray-500'}`}
+      title={`${p?.label ?? ''} ${p ? '—' : ''} ${valeur}/${noteMax}`.trim()}
+      className={`inline-flex items-center justify-center w-9 h-6 rounded text-[11px] font-bold ${p?.classe ?? 'bg-gray-100 text-gray-500'}`}
     >
-      {valeur}
+      {sur20 ?? valeur}
     </span>
   );
 }
@@ -98,7 +110,8 @@ function TableauNotesClasse({ classeId, onSelectEleve }) {
       ...tableau.eleves.map((eleve) => {
         const valeurs = tableau.evaluations.map((e) => {
           const v = tableau.notes[eleve.id]?.[e.id];
-          return v !== null && v !== undefined ? String(v) : '';
+          const sur20 = noteSur20(v ?? null, e.noteMax);
+          return sur20 !== null ? String(sur20) : '';
         });
         return [`${eleve.nom} ${eleve.prenom}`, ...valeurs].join('\t');
       }),
@@ -179,7 +192,7 @@ function TableauNotesClasse({ classeId, onSelectEleve }) {
                 </td>
                 {tableau.evaluations.map((e) => (
                   <td key={e.id} className="px-1 py-2 text-center">
-                    <CelluleNote valeur={tableau.notes[eleve.id]?.[e.id] ?? null} />
+                    <CelluleNote valeur={tableau.notes[eleve.id]?.[e.id] ?? null} noteMax={e.noteMax} />
                   </td>
                 ))}
               </tr>
@@ -191,7 +204,63 @@ function TableauNotesClasse({ classeId, onSelectEleve }) {
       <div className="px-6 py-4 border-t border-gray-50 flex flex-wrap gap-3">
         {Object.entries(PALIERS).map(([v, p]) => (
           <span key={v} className={`text-xs px-2 py-0.5 rounded border border-transparent font-medium ${p.classe}`}>
-            {v} = {p.label}
+            {noteSur20(Number(v), 20)}/20 = {p.label}
+          </span>
+        ))}
+        <span className="text-xs px-2 py-0.5 rounded text-gray-400 border border-gray-100">— = Pas de note</span>
+      </div>
+    </Card>
+  );
+}
+
+// ─── Vue tableau (élève) : ses propres évaluations, notées sur 20 ─────────────
+
+function GrilleNotesEleve({ notes }) {
+  if (notes.length === 0) return null;
+
+  // L'API renvoie les notes par date de saisie décroissante ; la grille se lit
+  // plus naturellement dans l'ordre chronologique des évaluations
+  const notesTriees = [...notes].sort(
+    (a, b) => new Date(a.evaluation?.datePassage ?? a.createdAt) - new Date(b.evaluation?.datePassage ?? b.createdAt)
+  );
+
+  return (
+    <Card padding={false}>
+      <div className="px-6 pt-6 pb-4">
+        <CardHeader title="Vue synthétique" subtitle="Toutes les évaluations, notées sur 20" />
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-t border-gray-50">
+              {notesTriees.map((n) => (
+                <th
+                  key={n.id}
+                  title={`${n.evaluation?.titre ?? '—'} · ${TYPE_LABELS[n.evaluation?.type] ?? n.evaluation?.type ?? ''}${n.evaluation?.datePassage ? ` · ${format(new Date(n.evaluation.datePassage), 'd MMM yyyy', { locale: fr })}` : ''}`}
+                  className="px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help whitespace-nowrap"
+                >
+                  {n.evaluation?.datePassage ? format(new Date(n.evaluation.datePassage), 'd/MM', { locale: fr }) : '—'}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {notesTriees.map((n) => (
+                <td key={n.id} className="px-1 py-2 text-center">
+                  <CelluleNote valeur={n.valeur} noteMax={n.evaluation?.noteMax ?? 20} />
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="px-6 py-4 border-t border-gray-50 flex flex-wrap gap-3">
+        {Object.entries(PALIERS).map(([v, p]) => (
+          <span key={v} className={`text-xs px-2 py-0.5 rounded border border-transparent font-medium ${p.classe}`}>
+            {noteSur20(Number(v), 20)}/20 = {p.label}
           </span>
         ))}
         <span className="text-xs px-2 py-0.5 rounded text-gray-400 border border-gray-100">— = Pas de note</span>
@@ -331,6 +400,8 @@ export default function Notes() {
               couleur="bg-amber-500"
             />
           </div>
+
+          <GrilleNotesEleve notes={notes} />
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {notees.length > 0 && (
