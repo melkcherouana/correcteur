@@ -826,6 +826,20 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
     }
   };
 
+  const telechargerFichier = async (soumissionId, fichierNom) => {
+    try {
+      const resp = await api.get(`/evaluations/${evaluationId}/soumissions/${soumissionId}/fichier`, { responseType: 'blob' });
+      const url = URL.createObjectURL(resp.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fichierNom;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err?.response?.data?.message ?? 'Erreur lors du téléchargement');
+    }
+  };
+
   const genererQuestions = async (eleveId, resultatIA) => {
     if (questions[eleveId]) {
       setQuestionsOuvertes((p) => ({ ...p, [eleveId]: !p[eleveId] }));
@@ -955,11 +969,25 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
                         <span className={`text-xs font-semibold ${MENTION_TC[resultatIA.mention] ?? 'text-gray-600'}`}>
                           {resultatIA.mention}
                         </span>
+                        <button
+                          onClick={() => telechargerFichier(soumission.id, soumission.fichierNom)}
+                          title={`Télécharger ${soumission.fichierNom}`}
+                          className="p-1 text-gray-400 hover:text-indigo-600 flex-shrink-0"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <FileText className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                         <span className="text-xs text-gray-500 truncate max-w-[160px]">{soumission.fichierNom}</span>
+                        <button
+                          onClick={() => telechargerFichier(soumission.id, soumission.fichierNom)}
+                          title={`Télécharger ${soumission.fichierNom}`}
+                          className="p-1 text-gray-400 hover:text-indigo-600 flex-shrink-0"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </button>
                         {evaluation.statut !== 'ARCHIVEE' && (
                           <button
                             onClick={() => corrigerUn(soumission.id)}

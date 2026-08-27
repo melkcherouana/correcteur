@@ -60,6 +60,17 @@ export const obtenirMaSoumission = async (evaluationId, eleveId) =>
     select: CHAMPS_PUBLICS,
   });
 
+// ─── Téléchargement du fichier déposé ─────────────────────────────────────────
+
+export const obtenirFichier = async (soumissionId) => {
+  const s = await prisma.soumission.findUnique({
+    where: { id: soumissionId },
+    select: { fichierNom: true, fichierType: true, fichierData: true },
+  });
+  if (!s) throw erreur('Soumission introuvable', 404);
+  return s;
+};
+
 // ─── Correction IA ────────────────────────────────────────────────────────────
 
 export const corrigerSoumissionIA = async (soumissionId) => {

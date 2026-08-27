@@ -116,4 +116,7 @@ router.get('/:id/soumissions', autoriser('ADMIN', 'ENSEIGNANT'), soumCtrl.lister
 // POST /api/evaluations/:id/soumissions/:sid/corriger-ia — enseignant : correction IA
 router.post('/:id/soumissions/:sid/corriger-ia', autoriser('ADMIN', 'ENSEIGNANT'), soumCtrl.corrigerIA);
 
+// GET /api/evaluations/:id/soumissions/:sid/fichier — enseignant : télécharger le fichier déposé par l'élève
+router.get('/:id/soumissions/:sid/fichier', autoriser('ADMIN', 'ENSEIGNANT'), soumCtrl.telechargerFichier);
+
 export default router;

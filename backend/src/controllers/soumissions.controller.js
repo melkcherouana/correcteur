@@ -57,3 +57,17 @@ export const corrigerIA = async (req, res, next) => {
     next(err);
   }
 };
+
+export const telechargerFichier = async (req, res, next) => {
+  try {
+    const { fichierNom, fichierType, fichierData } = await service.obtenirFichier(req.params.sid);
+    res.set({
+      'Content-Type': fichierType,
+      'Content-Disposition': `attachment; filename="${encodeURIComponent(fichierNom)}"`,
+      'Content-Length': fichierData.length,
+    });
+    res.send(fichierData);
+  } catch (err) {
+    next(err);
+  }
+};
