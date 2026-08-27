@@ -97,8 +97,9 @@ const NAV = {
       label: 'Paramètres',
       icon: Settings,
       children: [
-        { label: 'Classes',          to: '/classes' },
-        { label: 'Années scolaires', to: '/annees'  },
+        { label: 'Classes',          to: '/classes'     },
+        { label: 'Compétences',      to: '/competences' },
+        { label: 'Années scolaires', to: '/annees'      },
       ],
     },
     { label: 'Documentation', to: '/documentation', icon: BookOpen },
