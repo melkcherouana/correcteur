@@ -111,9 +111,11 @@ export const telechargerSujet = async (req, res, next) => {
       select: { sujetNom: true, sujetType: true, sujetData: true, sujetTaille: true },
     });
     if (!e?.sujetData) return res.status(404).json({ message: 'Aucun énoncé disponible' });
+    // filename= (repli ASCII) + filename*= (RFC 6266) — cf. soumissions.controller.js
+    const nomAscii = e.sujetNom.replace(/[^\x20-\x7E]/g, '_');
     res.set({
       'Content-Type': e.sujetType,
-      'Content-Disposition': `attachment; filename="${encodeURIComponent(e.sujetNom)}"`,
+      'Content-Disposition': `attachment; filename="${nomAscii}"; filename*=UTF-8''${encodeURIComponent(e.sujetNom)}`,
       'Content-Length': e.sujetTaille,
     });
     res.send(e.sujetData);

@@ -61,9 +61,14 @@ export const corrigerIA = async (req, res, next) => {
 export const telechargerFichier = async (req, res, next) => {
   try {
     const { fichierNom, fichierType, fichierData } = await service.obtenirFichier(req.params.sid);
+    // filename= (repli ASCII) + filename*= (RFC 6266, seul correctement décodé
+    // par les navigateurs pour les accents/espaces) — un simple
+    // encodeURIComponent() dans filename="" est pris au pied de la lettre et
+    // produit un nom de fichier enregistré littéralement encodé.
+    const nomAscii = fichierNom.replace(/[^\x20-\x7E]/g, '_');
     res.set({
       'Content-Type': fichierType,
-      'Content-Disposition': `attachment; filename="${encodeURIComponent(fichierNom)}"`,
+      'Content-Disposition': `attachment; filename="${nomAscii}"; filename*=UTF-8''${encodeURIComponent(fichierNom)}`,
       'Content-Length': fichierData.length,
     });
     res.send(fichierData);
