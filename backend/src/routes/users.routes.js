@@ -26,6 +26,7 @@ router.get('/', autoriser('ADMIN', 'ENSEIGNANT'), ctrl.lister);
 // GET /api/users/:id
 router.get(
   '/:id',
+  autoriser('ADMIN', 'ENSEIGNANT'),
   param('id').notEmpty(),
   ctrl.obtenir
 );

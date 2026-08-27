@@ -10,9 +10,12 @@ const valider = (req, res) => {
 export const lister = async (req, res, next) => {
   try {
     const { role, actif, search, page, limite } = req.query;
+    const estAdmin = req.utilisateur?.role === 'ADMIN';
     const data = await usersService.listerUtilisateurs({
       role,
-      actif: actif !== undefined ? actif === 'true' : undefined,
+      // Un enseignant ne voit que les comptes actifs, quoi qu'il demande —
+      // seul l'admin peut consulter les comptes désactivés.
+      actif: estAdmin ? (actif !== undefined ? actif === 'true' : undefined) : true,
       search,
       page: page ? parseInt(page) : 1,
       limite: limite ? parseInt(limite) : 20,
