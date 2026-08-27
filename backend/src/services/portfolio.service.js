@@ -90,6 +90,11 @@ export const obtenirPortfolio = async (eleveId, { debut, fin } = {}) => {
   // Compétences groupées par matière (avec totalCompetences réel pour chaque matière)
   const competencesParMatiere = grouperParMatiere(competencesEleve, totalParMatiere);
 
+  // Sans filtre de période, notesRecentes reste un aperçu court (widgets Dashboard/
+  // MonPortfolio). Avec un filtre de période (ex. trimestre), on veut la liste
+  // complète des évaluations de la période, pas juste les 10 plus récentes.
+  const notesAffichees = (debut && fin) ? notes : notes.slice(0, 10);
+
   return {
     eleve: {
       id: eleve.id,
@@ -107,7 +112,7 @@ export const obtenirPortfolio = async (eleveId, { debut, fin } = {}) => {
     moyennesParMatiere,
     competencesParMatiere,
     competencesFragiles: fragiles.map(mapCompetenceEleve),
-    notesRecentes: notes.slice(0, 10).map(mapNote),
+    notesRecentes: notesAffichees.map(mapNote),
   };
 };
 

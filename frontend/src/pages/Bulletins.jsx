@@ -24,6 +24,10 @@ const NIVEAU_LABEL = {
   ACQUIS: 'Acquis',
   DEPASSE: 'Dépassé',
 };
+const TYPE_LABELS = {
+  DEVOIR_SURVEILLE: 'Devoir surveillé', TRAVAUX_PRATIQUES: 'Travaux pratiques',
+  ORAL: 'Oral', PROJET: 'Projet', CCF: 'CCF',
+};
 
 // ─── Bouton téléchargement PDF ────────────────────────────────────────────────
 
@@ -276,7 +280,7 @@ function BulletinEleve({ eleveId, peutGenererCommentaire = false }) {
   if (isLoading) return <div className="flex justify-center py-12"><Spinner /></div>;
   if (!data) return null;
 
-  const { eleve, stats, moyennesParMatiere, competencesParMatiere, periodeFiltre } = data;
+  const { eleve, stats, moyennesParMatiere, competencesParMatiere, notesRecentes = [], periodeFiltre } = data;
 
   return (
     <div className="space-y-6">
@@ -368,6 +372,50 @@ function BulletinEleve({ eleveId, peutGenererCommentaire = false }) {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* Évaluations de la période — enseignant/admin uniquement pour l'instant */}
+      {peutGenererCommentaire && (
+        <div>
+          <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-indigo-600" /> Évaluations du trimestre
+          </h3>
+          {notesRecentes.length === 0 ? (
+            <p className="text-sm text-slate-400 rounded-xl border border-slate-200 px-4 py-6 text-center">
+              Aucune évaluation notée sur cette période.
+            </p>
+          ) : (
+            <div className="rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="text-left px-4 py-2.5 font-semibold text-slate-600">Évaluation</th>
+                    <th className="text-left px-4 py-2.5 font-semibold text-slate-600">Type</th>
+                    <th className="text-left px-4 py-2.5 font-semibold text-slate-600">Date</th>
+                    <th className="text-right px-4 py-2.5 font-semibold text-slate-600">Note</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {notesRecentes.map((n) => {
+                    const estPalier = Number.isInteger(n.valeur) && n.valeur >= 1 && n.valeur <= 4 && n.evaluation.noteMax > 4;
+                    const affichage = estPalier ? `${n.valeur}/4` : `${n.valeur}/${n.evaluation.noteMax}`;
+                    const date = n.evaluation.datePassage ?? n.createdAt;
+                    return (
+                      <tr key={n.id} className="hover:bg-slate-50">
+                        <td className="px-4 py-2.5 text-slate-700">{n.evaluation.titre}</td>
+                        <td className="px-4 py-2.5 text-slate-500">{TYPE_LABELS[n.evaluation.type] ?? n.evaluation.type}</td>
+                        <td className="px-4 py-2.5 text-slate-500">{format(new Date(date), 'd MMM yyyy', { locale: fr })}</td>
+                        <td className="px-4 py-2.5 text-right font-semibold text-slate-900">
+                          {n.valeur !== null ? affichage : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
