@@ -128,7 +128,7 @@ export const corrigerSoumissionIA = async (soumissionId) => {
     });
 
     if (palier !== null) {
-      const commentaire = `IA : ${resultat.mention} (${resultat.noteGlobale}/${resultat.noteMax})`;
+      const commentaire = `${resultat.mention} (${resultat.noteGlobale}/${resultat.noteMax})`;
       const existante = await tx.note.findFirst({
         where: { evaluationId: soumission.evaluationId, eleveId: soumission.eleveId, critereId: null },
       });
@@ -154,12 +154,12 @@ export const corrigerSoumissionIA = async (soumissionId) => {
     }
   });
 
-  // Notifier l'élève que sa correction IA est disponible
+  // Notifier l'élève que sa correction est disponible
   if (palier !== null) {
     const palierLabel = ['Novice', 'Débrouillé', 'Averti', 'Expert'][palier - 1] ?? palier;
     await creerNotification(
       soumission.eleveId,
-      'Correction IA disponible',
+      'Correction disponible',
       `Votre devoir "${soumission.evaluation.titre}" a été corrigé automatiquement — palier : ${palierLabel}.`
     ).catch(() => null);
   }

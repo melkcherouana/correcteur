@@ -28,7 +28,7 @@ function ResultatIA({ resultat }) {
       >
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-indigo-500" />
-          <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Correction IA</span>
+          <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">Correction</span>
           <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${mentionClass}`}>{resultat.mention}</span>
         </div>
         <div className="flex items-center gap-3">

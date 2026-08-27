@@ -618,7 +618,7 @@ function OngletExport({ estEleve, monId }) {
           <div>
             <h3 className="font-semibold text-gray-900">Bulletin de compétences</h3>
             <p className="text-sm text-gray-500 mt-1">
-              Bulletin trimestriel avec commentaire IA automatique
+              Bulletin trimestriel avec appréciation personnalisée
             </p>
             <div className="flex rounded-lg border border-gray-200 overflow-hidden mt-3 w-fit">
               {[1, 2, 3].map((t) => (
