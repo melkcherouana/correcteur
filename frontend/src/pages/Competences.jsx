@@ -25,11 +25,28 @@ function CelluleNiveau({ eleveId, competenceId, niveau, onModifier }) {
     <button
       onClick={() => onModifier(eleveId, competenceId, suivant)}
       title={`${info.full} → cliquer pour passer à ${NIVEAU_INFOS[suivant].full}`}
-      className={`inline-flex items-center justify-center w-10 h-7 rounded text-xs font-bold border transition-all hover:opacity-75 hover:scale-105 active:scale-95 ${info.bg}`}
+      className={`inline-flex items-center justify-center w-8 h-6 rounded text-[11px] font-bold border transition-all hover:opacity-75 hover:scale-105 active:scale-95 ${info.bg}`}
     >
       {info.label}
     </button>
   );
+}
+
+// Regroupe une liste de compétences déjà triées par pôle en blocs contigus
+// (l'ordre backend garantit que les compétences d'un même pôle se suivent) —
+// { poleId: null } sert de bloc « Hors pôle » pour les compétences sans pôle.
+function grouperParPole(competences) {
+  const groupes = [];
+  for (const c of competences) {
+    const poleId = c.pole?.id ?? null;
+    const dernier = groupes[groupes.length - 1];
+    if (dernier && dernier.poleId === poleId) {
+      dernier.competences.push(c);
+    } else {
+      groupes.push({ poleId, titre: c.pole?.titre ?? 'Hors pôle', competences: [c] });
+    }
+  }
+  return groupes;
 }
 
 // ─── Vue élève : ses propres compétences ─────────────────────────────────────
@@ -148,6 +165,8 @@ function VueEnseignant() {
     enabled: !!(classeId && matiereId),
   });
 
+  const groupes = tableau ? grouperParPole(tableau.competences) : [];
+
   const majNiveau = useMutation({
     mutationFn: ({ eleveId, competenceId, niveau }) =>
       api.put(`/competences/eleve/${eleveId}/${competenceId}`, { niveau }),
@@ -252,14 +271,32 @@ function VueEnseignant() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
+                {/* Regroupement par pôle — une seule ligne si tout est « Hors pôle » */}
+                {!(groupes.length === 1 && groupes[0].poleId === null) && (
+                  <tr className="border-t border-gray-50">
+                    <th className="sticky left-0 bg-white" />
+                    {groupes.map((g) => (
+                      <th
+                        key={g.poleId ?? 'hors-pole'}
+                        colSpan={g.competences.length}
+                        title={g.titre}
+                        className={`px-1 py-1 text-center text-[10px] font-semibold uppercase tracking-wide border-b truncate max-w-0 cursor-help ${
+                          g.poleId ? 'text-indigo-600 border-indigo-100 bg-indigo-50/50' : 'text-gray-400 border-gray-100'
+                        }`}
+                      >
+                        {g.titre}
+                      </th>
+                    ))}
+                  </tr>
+                )}
                 <tr className="border-t border-gray-50">
-                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase min-w-[130px] sticky left-0 bg-white">
+                  <th className="text-left px-4 py-2 text-[11px] font-semibold text-gray-400 uppercase min-w-[130px] sticky left-0 bg-white">
                     Élève
                   </th>
                   {tableau.competences.map((c) => (
                     <th
                       key={c.id}
-                      className="px-1.5 py-2.5 text-center text-xs font-bold text-gray-700 cursor-help"
+                      className="px-1 py-2 text-center text-[11px] font-bold text-gray-700 cursor-help"
                       title={c.description}
                     >
                       {c.code}
@@ -275,7 +312,7 @@ function VueEnseignant() {
                       {eleve.nom} {eleve.prenom}
                     </td>
                     {tableau.competences.map((c) => (
-                      <td key={c.id} className="px-1.5 py-2 text-center">
+                      <td key={c.id} className="px-1 py-2 text-center">
                         <CelluleNiveau
                           eleveId={eleve.id}
                           competenceId={c.id}
@@ -291,7 +328,7 @@ function VueEnseignant() {
 
                 {/* Ligne statistiques */}
                 <tr className="border-t-2 border-gray-100 bg-gray-50/60">
-                  <td className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase sticky left-0 bg-gray-50/60">% Acquis+</td>
+                  <td className="px-4 py-2 text-[11px] font-semibold text-gray-400 uppercase sticky left-0 bg-gray-50/60">% Acq.+</td>
                   {tableau.competences.map((c) => {
                     const total = tableau.eleves.length;
                     const acquis = tableau.eleves.filter((e) =>
@@ -299,9 +336,9 @@ function VueEnseignant() {
                     ).length;
                     const pct = total > 0 ? Math.round((acquis / total) * 100) : 0;
                     return (
-                      <td key={c.id} className="px-1.5 py-2 text-center">
+                      <td key={c.id} className="px-1 py-2 text-center">
                         <span
-                          className={`text-xs font-bold ${
+                          className={`text-[11px] font-bold ${
                             pct >= 70 ? 'text-emerald-600' : pct >= 40 ? 'text-amber-600' : 'text-red-500'
                           }`}
                         >

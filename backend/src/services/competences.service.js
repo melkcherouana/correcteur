@@ -92,8 +92,10 @@ export const tableauBordClasse = async (classeId, matiereId) => {
     }),
     prisma.competence.findMany({
       where: { matiereId },
-      include: { criteres: true },
-      orderBy: { code: 'asc' },
+      include: { criteres: true, pole: { select: { id: true, titre: true, ordre: true } } },
+      // Groupe par pôle (les compétences sans pôle se retrouvent contiguës en fin
+      // de liste), puis par ordre défini dans le référentiel à l'intérieur du pôle
+      orderBy: [{ pole: { ordre: 'asc' } }, { ordre: 'asc' }, { code: 'asc' }],
     }),
   ]);
 
