@@ -44,6 +44,14 @@ const INCLUDE_DETAIL = {
 
 const erreur = (msg, status) => Object.assign(new Error(msg), { status });
 
+// L'admin peut tout modifier ; un enseignant uniquement ses propres évaluations
+// (cf. le même principe déjà appliqué en lecture dans le contrôleur `lister`).
+const verifierProprietaire = (evaluation, utilisateur) => {
+  if (utilisateur.role !== 'ADMIN' && evaluation.createurId !== utilisateur.id) {
+    throw erreur('Vous ne pouvez modifier que vos propres évaluations', 403);
+  }
+};
+
 const calculerStats = (notes) => {
   const valeurs = notes.map((n) => n.valeur).filter((v) => v !== null);
   if (!valeurs.length) return { nbSaisies: 0, moyenne: null, min: null, max: null };
@@ -136,9 +144,10 @@ export const creerEvaluation = async (data, createurId) => {
   });
 };
 
-export const mettreAJourEvaluation = async (id, data) => {
+export const mettreAJourEvaluation = async (id, data, utilisateur) => {
   const evaluation = await prisma.evaluation.findUnique({ where: { id } });
   if (!evaluation) throw erreur('Évaluation introuvable', 404);
+  verifierProprietaire(evaluation, utilisateur);
   if (evaluation.statut === 'ARCHIVEE') throw erreur('Impossible de modifier une évaluation archivée', 409);
 
   const { competenceIds, ...rest } = data;
@@ -161,15 +170,17 @@ export const mettreAJourEvaluation = async (id, data) => {
   });
 };
 
-export const changerStatut = async (id, statut) => {
+export const changerStatut = async (id, statut, utilisateur) => {
   const evaluation = await prisma.evaluation.findUnique({ where: { id } });
   if (!evaluation) throw erreur('Évaluation introuvable', 404);
+  verifierProprietaire(evaluation, utilisateur);
   return prisma.evaluation.update({ where: { id }, data: { statut }, include: INCLUDE_LISTE });
 };
 
-export const supprimerEvaluation = async (id) => {
+export const supprimerEvaluation = async (id, utilisateur) => {
   const evaluation = await prisma.evaluation.findUnique({ where: { id } });
   if (!evaluation) throw erreur('Évaluation introuvable', 404);
+  verifierProprietaire(evaluation, utilisateur);
   // Archivage logique — préserve les notes existantes
   await prisma.evaluation.update({ where: { id }, data: { statut: 'ARCHIVEE' } });
 };

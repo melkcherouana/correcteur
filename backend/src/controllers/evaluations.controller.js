@@ -52,19 +52,19 @@ export const creer = async (req, res, next) => {
 
 export const mettreAJour = async (req, res, next) => {
   if (!valider(req, res)) return;
-  try { res.json(await svc.mettreAJourEvaluation(req.params.id, req.body, req.utilisateur.id)); }
+  try { res.json(await svc.mettreAJourEvaluation(req.params.id, req.body, req.utilisateur)); }
   catch (err) { next(err); }
 };
 
 export const changerStatut = async (req, res, next) => {
   if (!valider(req, res)) return;
-  try { res.json(await svc.changerStatut(req.params.id, req.body.statut)); }
+  try { res.json(await svc.changerStatut(req.params.id, req.body.statut, req.utilisateur)); }
   catch (err) { next(err); }
 };
 
 export const supprimer = async (req, res, next) => {
   try {
-    await svc.supprimerEvaluation(req.params.id);
+    await svc.supprimerEvaluation(req.params.id, req.utilisateur);
     res.status(204).end();
   } catch (err) { next(err); }
 };
