@@ -7,6 +7,7 @@ import {
   CheckCircle2, Info, ClipboardCheck,
 } from 'lucide-react';
 import clsx from 'clsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 /* ─── Données des guides ─────────────────────────────────── */
 
@@ -321,8 +322,14 @@ function Etape({ etape, couleur, estDerniere }) {
 /* ─── Page principale ────────────────────────────────────── */
 
 export default function Documentation() {
+  const { utilisateur } = useAuth();
+  // Un élève ne doit voir que son propre guide — celui des enseignants/admin
+  // mentionne des fonctionnalités (correction automatique, gestion des comptes…)
+  // hors de son périmètre
+  const guidesVisibles = utilisateur?.role === 'ELEVE' ? GUIDES.filter((g) => g.id === 'eleve') : GUIDES;
+
   const [guideActif, setGuideActif] = useState('eleve');
-  const guide = GUIDES.find((g) => g.id === guideActif);
+  const guide = guidesVisibles.find((g) => g.id === guideActif) ?? guidesVisibles[0];
   const c = COULEURS[guide.couleur];
   const GuideIcon = guide.icon;
 
@@ -350,7 +357,7 @@ export default function Documentation() {
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
         {/* Barre d'onglets */}
         <div className="flex border-b border-gray-200 dark:border-slate-700">
-          {GUIDES.map((g) => {
+          {guidesVisibles.map((g) => {
             const Ic = g.icon;
             const actif = g.id === guideActif;
             const cc = COULEURS[g.couleur];
