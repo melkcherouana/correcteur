@@ -2,14 +2,21 @@ import * as svc from '../services/absences.service.js';
 
 export const lister = async (req, res, next) => {
   try {
-    const { eleveId, classeId, dateDebut, dateFin, justifiee, type } = req.query;
+    const { classeId, dateDebut, dateFin, justifiee, type } = req.query;
+    // Un élève ne peut voir que ses propres absences, quel que soit le eleveId demandé
+    const eleveId = req.utilisateur.role === 'ELEVE' ? req.utilisateur.id : req.query.eleveId;
     res.json(await svc.listerAbsences({ eleveId, classeId, dateDebut, dateFin, justifiee, type }));
   } catch (err) { next(err); }
 };
 
 export const obtenir = async (req, res, next) => {
-  try { res.json(await svc.obtenirAbsence(req.params.id)); }
-  catch (err) { next(err); }
+  try {
+    const absence = await svc.obtenirAbsence(req.params.id);
+    if (req.utilisateur.role === 'ELEVE' && absence.eleveId !== req.utilisateur.id) {
+      return res.status(403).json({ message: 'Accès refusé' });
+    }
+    res.json(absence);
+  } catch (err) { next(err); }
 };
 
 export const creer = async (req, res, next) => {

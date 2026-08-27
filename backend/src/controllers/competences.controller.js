@@ -53,8 +53,12 @@ export const supprimer = async (req, res, next) => {
 };
 
 export const niveauxEleve = async (req, res, next) => {
-  try { res.json(await svc.niveauxEleve(req.params.eleveId)); }
-  catch (err) { next(err); }
+  try {
+    if (req.utilisateur.role === 'ELEVE' && req.utilisateur.id !== req.params.eleveId) {
+      return res.status(403).json({ message: 'Accès refusé' });
+    }
+    res.json(await svc.niveauxEleve(req.params.eleveId));
+  } catch (err) { next(err); }
 };
 
 export const mettreAJourNiveau = async (req, res, next) => {

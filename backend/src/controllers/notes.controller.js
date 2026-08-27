@@ -9,7 +9,9 @@ const valider = (req, res) => {
 
 export const lister = async (req, res, next) => {
   try {
-    const { eleveId, evaluationId, page, limite } = req.query;
+    const { evaluationId, page, limite } = req.query;
+    // Un élève ne peut voir que ses propres notes, quel que soit le eleveId demandé
+    const eleveId = req.utilisateur.role === 'ELEVE' ? req.utilisateur.id : req.query.eleveId;
     res.json(await svc.listerNotes({
       eleveId, evaluationId,
       page:   page   ? parseInt(page)   : 1,
@@ -19,8 +21,13 @@ export const lister = async (req, res, next) => {
 };
 
 export const obtenir = async (req, res, next) => {
-  try { res.json(await svc.obtenirNote(req.params.id)); }
-  catch (err) { next(err); }
+  try {
+    const note = await svc.obtenirNote(req.params.id);
+    if (req.utilisateur.role === 'ELEVE' && note.eleve.id !== req.utilisateur.id) {
+      return res.status(403).json({ message: 'Accès refusé' });
+    }
+    res.json(note);
+  } catch (err) { next(err); }
 };
 
 export const saisirBulk = async (req, res, next) => {

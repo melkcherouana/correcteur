@@ -19,14 +19,14 @@ export const creer = async (req, res, next) => {
 };
 
 export const modifier = async (req, res, next) => {
-  try { res.json(await svc.modifierCcf(req.params.id, req.body)); }
+  try { res.json(await svc.modifierCcf(req.params.id, req.body, req.utilisateur)); }
   catch (err) { next(err); }
 };
 
 export const noter = async (req, res, next) => {
   try {
     const { eleveId, valeur, commentaire } = req.body;
-    res.json(await svc.noterEleve(req.params.id, eleveId, { valeur, commentaire }));
+    res.json(await svc.noterEleve(req.params.id, eleveId, { valeur, commentaire }, req.utilisateur));
   } catch (err) { next(err); }
 };
 

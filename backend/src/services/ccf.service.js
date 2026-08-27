@@ -2,6 +2,14 @@ import prisma from '../utils/prisma.js';
 
 const erreur = (msg, status) => Object.assign(new Error(msg), { status });
 
+// Même principe que evaluations.service.js : l'admin peut tout modifier,
+// un enseignant uniquement les CCF qu'il a créés.
+const verifierProprietaire = (evaluation, utilisateur) => {
+  if (utilisateur.role !== 'ADMIN' && evaluation.createurId !== utilisateur.id) {
+    throw erreur('Vous ne pouvez modifier que vos propres CCF', 403);
+  }
+};
+
 const INCLUDE_CCF = {
   classe:    { select: { id: true, nom: true, niveau: true } },
   createur:  { select: { id: true, prenom: true, nom: true } },
@@ -82,7 +90,11 @@ export const creerCcf = async ({
 export const modifierCcf = async (evaluationId, {
   titre, description, datePassage, noteMax, coefficient, statut,
   numSituation, contexte, competencesCiblees, dateJury, observations,
-}) => {
+}, utilisateur) => {
+  const existant = await prisma.evaluation.findUnique({ where: { id: evaluationId } });
+  if (!existant) throw erreur('CCF introuvable', 404);
+  verifierProprietaire(existant, utilisateur);
+
   const champEval = {};
   if (titre       !== undefined) champEval.titre       = titre;
   if (description !== undefined) champEval.description = description;
@@ -110,9 +122,10 @@ export const modifierCcf = async (evaluationId, {
 
 // ─── Saisie de note pour un élève ─────────────────────────────────────────────
 
-export const noterEleve = async (evaluationId, eleveId, { valeur, commentaire }) => {
+export const noterEleve = async (evaluationId, eleveId, { valeur, commentaire }, utilisateur) => {
   const ev = await prisma.evaluation.findUnique({ where: { id: evaluationId } });
   if (!ev) throw erreur('CCF introuvable', 404);
+  verifierProprietaire(ev, utilisateur);
 
   return prisma.note.upsert({
     where: { eleveId_evaluationId_critereId: { eleveId, evaluationId, critereId: null } },

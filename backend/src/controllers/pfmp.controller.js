@@ -2,14 +2,21 @@ import * as svc from '../services/pfmp.service.js';
 
 export const lister = async (req, res, next) => {
   try {
-    const { eleveId, classeId, statut } = req.query;
+    const { classeId, statut } = req.query;
+    // Un élève ne peut voir que ses propres PFMP, quel que soit le eleveId demandé
+    const eleveId = req.utilisateur.role === 'ELEVE' ? req.utilisateur.id : req.query.eleveId;
     res.json(await svc.listerPfmps({ eleveId, classeId, statut }));
   } catch (err) { next(err); }
 };
 
 export const obtenir = async (req, res, next) => {
-  try { res.json(await svc.obtenirPfmp(req.params.id)); }
-  catch (err) { next(err); }
+  try {
+    const pfmp = await svc.obtenirPfmp(req.params.id);
+    if (req.utilisateur.role === 'ELEVE' && pfmp.eleveId !== req.utilisateur.id) {
+      return res.status(403).json({ message: 'Accès refusé' });
+    }
+    res.json(pfmp);
+  } catch (err) { next(err); }
 };
 
 export const creer = async (req, res, next) => {

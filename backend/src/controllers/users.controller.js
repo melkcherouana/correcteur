@@ -34,8 +34,11 @@ export const creer = async (req, res, next) => {
 
 export const mettreAJour = async (req, res, next) => {
   if (!valider(req, res)) return;
+  const parAdmin = req.utilisateur?.role === 'ADMIN';
+  if (!parAdmin && req.utilisateur?.id !== req.params.id) {
+    return res.status(403).json({ message: 'Vous ne pouvez modifier que votre propre profil' });
+  }
   try {
-    const parAdmin = req.utilisateur?.role === 'ADMIN';
     res.json(await usersService.mettreAJourUtilisateur(req.params.id, req.body, parAdmin));
   } catch (err) { next(err); }
 };
