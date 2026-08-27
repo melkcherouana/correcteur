@@ -111,10 +111,9 @@ export const supprimerPfmp = async (id) => {
 // ─── Compétences disponibles pour une PFMP (issues de la filière de la classe) ─
 
 export const competencesPourPfmp = async (classeId) => {
-  const classe = await prisma.classe.findUnique({
-    where: { id: classeId },
-    include: { filiere: true },
-  });
+  const classe = await prisma.classe.findUnique({ where: { id: classeId } });
+  if (!classe) throw erreur('Classe introuvable', 404);
+
   return prisma.competence.findMany({
     include: { matiere: { select: { id: true, code: true, nom: true } } },
     orderBy: [{ matiereId: 'asc' }, { code: 'asc' }],

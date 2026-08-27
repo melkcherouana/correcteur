@@ -6,8 +6,6 @@ const NOIR     = '#1e293b';
 const BLANC    = '#ffffff';
 const GRIS_L   = '#f8fafc';
 const BORDER   = '#e2e8f0';
-const ROUGE    = '#dc2626';
-const VERT_F   = '#15803d';
 
 const TYPE_LABELS = {
   facture:         'FACTURE',
@@ -31,7 +29,7 @@ function fmt(n) {
     : '—';
 }
 
-function entete(doc, document, pageLabel) {
+function entete(doc, document) {
   const couleur = TYPE_COULEURS[document.type] ?? INDIGO;
   const typeLabel = TYPE_LABELS[document.type] ?? document.type.toUpperCase();
 
@@ -192,7 +190,8 @@ function piedDePage(doc, document, numero, total) {
     .text(`Document pédagogique fictif — EvalPro   |   Page ${numero} / ${total}`, 40, 832, { align: 'center', width: 515 });
 }
 
-export const genererPdfDocumentsCommerciaux = (documents, scenario) =>
+// TODO : le scénario n'est actuellement affiché nulle part dans le PDF généré.
+export const genererPdfDocumentsCommerciaux = (documents, _scenario) =>
   new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 40, size: 'A4', autoFirstPage: false });
     const buf = [];
@@ -206,7 +205,7 @@ export const genererPdfDocumentsCommerciaux = (documents, scenario) =>
       const d = documents[i];
       doc.addPage();
 
-      entete(doc, d, `${i + 1}/${nbDocs}`);
+      entete(doc, d);
       tableau(doc, d.lignes);
       doc.moveDown(0.5);
       totaux(doc, d);

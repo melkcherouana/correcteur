@@ -178,7 +178,6 @@ async function main() {
 
   // ─── Séquence et évaluation de démonstration ──────────────────────────────
 
-  const autoMatiere = matieres.find((m) => m.code === 'AUTO');
   const classe1EPC  = classesCreees.find((c) => c.nom === '1EPC A');
 
   const sequence = await prisma.sequence.upsert({

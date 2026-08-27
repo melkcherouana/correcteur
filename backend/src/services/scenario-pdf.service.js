@@ -38,13 +38,6 @@ function sectionTitre(doc, texte) {
   doc.moveDown(0.8);
 }
 
-function ligne(doc, label, valeur, y) {
-  doc
-    .fillColor(GRIS).fontSize(9).font('Helvetica-Bold').text(label, 55, y, { continued: false, width: 120 });
-  doc
-    .fillColor(NOIR).fontSize(9).font('Helvetica').text(valeur ?? '—', 175, y, { width: 370 });
-}
-
 export const genererPdfScenario = (scenario) =>
   new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 40, size: 'A4' });

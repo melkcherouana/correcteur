@@ -312,7 +312,7 @@ export const genererPdfCertification = async (eleveId) => {
        .text('Tableau de synthèse par pôle');
     doc.moveDown(0.4);
 
-    for (const [polenom, pole] of Object.entries(poles)) {
+    for (const [, pole] of Object.entries(poles)) {
       if (doc.y > 680) doc.addPage();
 
       // Titre du pôle

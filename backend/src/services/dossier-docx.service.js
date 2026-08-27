@@ -1,3 +1,7 @@
+/* eslint-disable no-control-regex -- les regex ci-dessous encodent volontairement
+   la plage de caractères valides en XML 1.0 (tab/LF/CR + \x20-퟿ + -�)
+   pour assainir le texte avant insertion dans le .docx ; retirer \x09/\x0A/\x0D
+   corromprait la génération pour tout texte contenant ces caractères. */
 import {
   Document, Packer, Paragraph, Table, TableRow, TableCell,
   TextRun, AlignmentType, WidthType, BorderStyle,
@@ -88,11 +92,6 @@ function borders(color = 'cbd5e1', style = BorderStyle.SINGLE) {
 
 function rowTete(cells) {
   return new TableRow({ children: cells, tableHeader: true });
-}
-
-function fmt(v) {
-  if (v == null) return '';
-  return Number(v).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 }
 
 function titre(texte, bg = INDIGO) {

@@ -9,7 +9,7 @@ const INCLUDE_BASE = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const buildWhere = ({ eleveId, classeId, eleveIds, dateDebut, dateFin, justifiee, type }) => {
+const buildWhere = ({ eleveId, eleveIds, dateDebut, dateFin, justifiee, type }) => {
   const where = {};
   if (eleveId)   where.eleveId = eleveId;
   if (eleveIds)  where.eleveId = { in: eleveIds };

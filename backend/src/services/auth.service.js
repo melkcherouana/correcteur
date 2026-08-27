@@ -14,7 +14,7 @@ const genererToken = (u) =>
   );
 
 // Retire le hash du mot de passe avant de renvoyer l'objet
-const sansMdp = ({ motDePasse, ...u }) => u;
+const sansMdp = ({ motDePasse: _motDePasse, ...u }) => u;
 
 export const inscrire = async ({ email, motDePasse, prenom, nom }) => {
   const existant = await prisma.utilisateur.findUnique({ where: { email } });

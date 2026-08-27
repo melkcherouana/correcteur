@@ -74,14 +74,6 @@ function headerBandeau(doc, texteGauche, texteDroit, couleur = C.indigo) {
   doc.y = 34;
 }
 
-function sectionTitre(doc, texte, couleur = C.indigo) {
-  checkPage(doc, 80);
-  const y = doc.y;
-  rect(doc, ML, y, PW, 18, couleur);
-  txt(doc, texte.toUpperCase(), ML + 6, y + 4, { bold: true, size: 9, color: C.blanc, width: PW - 12 });
-  doc.y = y + 24;
-}
-
 function encadreConsigne(doc, texte) {
   const y = doc.y;
   rect(doc, ML, y, PW, 2, C.amber);
@@ -192,7 +184,8 @@ function pageGarde(doc, dossier) {
 
 // ── DOCUMENTS À LIRE ──────────────────────────────────────────────────────────
 
-function pageCatalogue(doc, doc_data, entreprise) {
+// TODO : l'entreprise n'est actuellement affichée nulle part sur la page catalogue.
+function pageCatalogue(doc, doc_data, _entreprise) {
   doc.addPage();
   headerBandeau(doc, `Document ${doc_data.numero} — ${doc_data.titre}`, 'DOCUMENT À LIRE');
 
@@ -390,7 +383,7 @@ function pageFacture(doc, annexe) {
     ['TOTAL TTC', null, true],
   ];
 
-  for (const [lbl, val, bold] of lignesTotaux) {
+  for (const [lbl, , bold] of lignesTotaux) {
     const rH = bold ? 20 : 16;
     if (bold) rect(doc, xLbl - 4, doc.y, wLbl + wVal + 12, rH, C.rouge);
     else rect(doc, xLbl - 4, doc.y, wLbl + wVal + 12, rH, C.grisXL);

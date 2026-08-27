@@ -136,7 +136,7 @@ export const creerEvaluation = async (data, createurId) => {
   });
 };
 
-export const mettreAJourEvaluation = async (id, data, utilisateurId) => {
+export const mettreAJourEvaluation = async (id, data) => {
   const evaluation = await prisma.evaluation.findUnique({ where: { id } });
   if (!evaluation) throw erreur('Évaluation introuvable', 404);
   if (evaluation.statut === 'ARCHIVEE') throw erreur('Impossible de modifier une évaluation archivée', 409);
