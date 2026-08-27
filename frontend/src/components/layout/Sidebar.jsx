@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Home, ClipboardList, Target, BarChart2, Sparkles,
   ScrollText, Settings, Users, GraduationCap,
-  CalendarDays, ClipboardCheck, BookOpen,
+  CalendarDays, ClipboardCheck, BookOpen, PenLine,
   ChevronLeft, ChevronRight, ChevronDown, X, LogOut,
 } from 'lucide-react';
 import clsx from 'clsx';
@@ -43,6 +43,7 @@ const NAV = {
   ENSEIGNANT: [
     { label: 'Accueil',      to: '/',            icon: Home,          exact: true },
     { label: 'Évaluations',  to: '/evaluations', icon: ClipboardList },
+    { label: 'Notes',        to: '/notes',       icon: PenLine },
     {
       label: 'Cours IA',
       icon: Sparkles,
