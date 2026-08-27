@@ -218,7 +218,9 @@ const MENTION_CLS = {
 
 // ─── Vue élève : statut + résultat correction ─────────────────────────────────
 
-function StatutDevoir({ maSoumission }) {
+function StatutDevoir({ evaluationId, maSoumission }) {
+  const [telechargement, setTelechargement] = useState(false);
+
   if (!maSoumission) {
     return (
       <div className="flex items-center gap-3 px-5 py-4 bg-indigo-50 border border-indigo-100 rounded-xl">
@@ -232,28 +234,64 @@ function StatutDevoir({ maSoumission }) {
       </div>
     );
   }
+
+  const telechargerMonFichier = async () => {
+    setTelechargement(true);
+    try {
+      const resp = await api.get(`/evaluations/${evaluationId}/soumissions/${maSoumission.id}/fichier`, { responseType: 'blob' });
+      const url = URL.createObjectURL(resp.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = maSoumission.fichierNom;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err?.response?.data?.message ?? 'Erreur lors du téléchargement');
+    } finally {
+      setTelechargement(false);
+    }
+  };
+
+  const boutonTelecharger = (
+    <button
+      onClick={telechargerMonFichier}
+      disabled={telechargement}
+      title={`Télécharger ${maSoumission.fichierNom}`}
+      className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors flex-shrink-0"
+    >
+      {telechargement ? <Spinner size="sm" /> : <Download className="w-3.5 h-3.5" />}
+      Télécharger
+    </button>
+  );
+
   if (maSoumission.corrigeeIA) {
     return (
-      <div className="flex items-center gap-3 px-5 py-4 bg-green-50 border border-green-200 rounded-xl">
-        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-          <CheckCircle2 className="w-4 h-4 text-green-600" />
+      <div className="flex items-center justify-between gap-3 px-5 py-4 bg-green-50 border border-green-200 rounded-xl">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+            <CheckCircle2 className="w-4 h-4 text-green-600" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-green-800">Corrigé</p>
+            <p className="text-xs text-green-600 truncate">Correction disponible — {maSoumission.fichierNom}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm font-semibold text-green-800">Corrigé</p>
-          <p className="text-xs text-green-600">Correction disponible — {maSoumission.fichierNom}</p>
-        </div>
+        {boutonTelecharger}
       </div>
     );
   }
   return (
-    <div className="flex items-center gap-3 px-5 py-4 bg-blue-50 border border-blue-100 rounded-xl">
-      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-        <Clock className="w-4 h-4 text-blue-600" />
+    <div className="flex items-center justify-between gap-3 px-5 py-4 bg-blue-50 border border-blue-100 rounded-xl">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+          <Clock className="w-4 h-4 text-blue-600" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-blue-800">Déposé</p>
+          <p className="text-xs text-blue-600 truncate">En attente de correction — {maSoumission.fichierNom}</p>
+        </div>
       </div>
-      <div>
-        <p className="text-sm font-semibold text-blue-800">Déposé</p>
-        <p className="text-xs text-blue-600">En attente de correction — {maSoumission.fichierNom}</p>
-      </div>
+      {boutonTelecharger}
     </div>
   );
 }
@@ -1352,7 +1390,7 @@ export default function EvaluationDetail() {
       {estEleve && (
         <div className="space-y-6">
           {/* Statut du devoir */}
-          <StatutDevoir maSoumission={maSoumission} />
+          <StatutDevoir evaluationId={id} maSoumission={maSoumission} />
 
           {/* Résultat de correction IA */}
           {maSoumission?.corrigeeIA && maSoumission?.resultatIA && (

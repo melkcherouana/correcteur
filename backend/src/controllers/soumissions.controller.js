@@ -60,7 +60,7 @@ export const corrigerIA = async (req, res, next) => {
 
 export const telechargerFichier = async (req, res, next) => {
   try {
-    const { fichierNom, fichierType, fichierData } = await service.obtenirFichier(req.params.sid);
+    const { fichierNom, fichierType, fichierData } = await service.obtenirFichier(req.params.sid, req.utilisateur);
     // filename= (repli ASCII) + filename*= (RFC 6266, seul correctement décodé
     // par les navigateurs pour les accents/espaces) — un simple
     // encodeURIComponent() dans filename="" est pris au pied de la lettre et

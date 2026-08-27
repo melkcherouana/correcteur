@@ -62,12 +62,16 @@ export const obtenirMaSoumission = async (evaluationId, eleveId) =>
 
 // ─── Téléchargement du fichier déposé ─────────────────────────────────────────
 
-export const obtenirFichier = async (soumissionId) => {
+export const obtenirFichier = async (soumissionId, utilisateur) => {
   const s = await prisma.soumission.findUnique({
     where: { id: soumissionId },
-    select: { fichierNom: true, fichierType: true, fichierData: true },
+    select: { fichierNom: true, fichierType: true, fichierData: true, eleveId: true },
   });
   if (!s) throw erreur('Soumission introuvable', 404);
+  // Un élève ne peut télécharger que son propre fichier ; enseignant/admin : accès libre
+  if (utilisateur.role === 'ELEVE' && s.eleveId !== utilisateur.id) {
+    throw erreur('Vous ne pouvez télécharger que votre propre fichier', 403);
+  }
   return s;
 };
 
