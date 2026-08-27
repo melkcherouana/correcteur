@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { useAuth } from '../context/AuthContext.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 import api from '../services/api.js';
@@ -274,7 +276,7 @@ function BulletinEleve({ eleveId, peutGenererCommentaire = false }) {
   if (isLoading) return <div className="flex justify-center py-12"><Spinner /></div>;
   if (!data) return null;
 
-  const { eleve, stats, moyennesParMatiere, competencesParMatiere } = data;
+  const { eleve, stats, moyennesParMatiere, competencesParMatiere, periodeFiltre } = data;
 
   return (
     <div className="space-y-6">
@@ -311,12 +313,24 @@ function BulletinEleve({ eleveId, peutGenererCommentaire = false }) {
         </div>
       </div>
 
+      {/* Période du trimestre affiché */}
+      {periodeFiltre ? (
+        <p className="text-xs text-slate-400">
+          Notes du {format(new Date(periodeFiltre.debut), 'd MMM yyyy', { locale: fr })} au {format(new Date(periodeFiltre.fin), 'd MMM yyyy', { locale: fr })}
+        </p>
+      ) : (
+        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+          Aucune année scolaire active configurée — les notes affichées ne sont pas filtrées par trimestre (historique complet).
+        </p>
+      )}
+
       {/* Progression */}
       <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-slate-700">Progression vers le diplôme</span>
           <span className="text-2xl font-bold text-indigo-700">{stats.pourcentage}%</span>
         </div>
+        <p className="text-xs text-slate-400 -mt-1 mb-2">État actuel des compétences, toutes périodes confondues</p>
         <ProgressBar value={stats.pourcentage} max={100} />
         <div className="flex gap-4 mt-2 text-xs text-slate-500">
           <span className="text-green-600 font-medium">{stats.acquises} acquises</span>

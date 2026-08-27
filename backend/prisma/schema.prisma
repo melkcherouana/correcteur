@@ -308,12 +308,16 @@ model Profil {
 // ─── Année de formation ───────────────────────────────────────────────────────
 
 model AnneeFormation {
-  id        String   @id @default(cuid())
-  libelle   String   @unique
-  debut     DateTime
-  fin       DateTime
-  actif     Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  libelle       String    @unique
+  debut         DateTime
+  fin           DateTime
+  // Bornes des trimestres 1 et 2 (le T1 commence à `debut`, le T3 finit à `fin`).
+  // Nullable : si non renseignées, un découpage en tiers égaux est utilisé en repli.
+  finTrimestre1 DateTime?
+  finTrimestre2 DateTime?
+  actif         Boolean   @default(false)
+  createdAt     DateTime  @default(now())
 
   certifications Certification[]
 

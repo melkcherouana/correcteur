@@ -19,6 +19,8 @@ router.post(
   body('libelle').trim().notEmpty().withMessage('Le libellé est requis (ex: 2025-2026)'),
   body('debut').isISO8601().withMessage('Date de début invalide'),
   body('fin').isISO8601().withMessage('Date de fin invalide'),
+  body('finTrimestre1').optional({ nullable: true, checkFalsy: true }).isISO8601().withMessage('Date de fin de trimestre 1 invalide'),
+  body('finTrimestre2').optional({ nullable: true, checkFalsy: true }).isISO8601().withMessage('Date de fin de trimestre 2 invalide'),
   ctrl.creer
 );
 
@@ -29,6 +31,8 @@ router.put(
   body('libelle').optional().trim().notEmpty(),
   body('debut').optional().isISO8601(),
   body('fin').optional().isISO8601(),
+  body('finTrimestre1').optional({ nullable: true, checkFalsy: true }).isISO8601().withMessage('Date de fin de trimestre 1 invalide'),
+  body('finTrimestre2').optional({ nullable: true, checkFalsy: true }).isISO8601().withMessage('Date de fin de trimestre 2 invalide'),
   ctrl.mettreAJour
 );
 

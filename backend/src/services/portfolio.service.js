@@ -4,8 +4,12 @@ const erreur = (msg, status) => Object.assign(new Error(msg), { status });
 
 // ─── Portfolio complet d'un élève ─────────────────────────────────────────────
 
-export const obtenirPortfolio = async (eleveId) => {
-  const [eleve, notes, competencesEleve, totalReferentiel, totalParMatiereRaw] = await Promise.all([
+// { debut, fin } optionnel : ne restreint que les notes (moyennes, notes récentes).
+// Les compétences (`competencesFragiles`/`competencesParMatiere`) restent globales
+// dans tous les cas : CompetenceEleve ne garde que le niveau courant, sans
+// historique daté par évaluation, donc aucun filtrage par période n'y est fiable.
+export const obtenirPortfolio = async (eleveId, { debut, fin } = {}) => {
+  const [eleve, notesToutes, competencesEleve, totalReferentiel, totalParMatiereRaw] = await Promise.all([
     prisma.utilisateur.findUnique({
       where: { id: eleveId },
       select: {
@@ -59,6 +63,13 @@ export const obtenirPortfolio = async (eleveId) => {
   ]);
 
   if (!eleve) throw erreur('Élève introuvable', 404);
+
+  // Date de référence d'une note = date de l'évaluation, ou date de dépôt de la
+  // note à défaut (évaluation sans datePassage renseignée)
+  const dateNote = (n) => n.evaluation.datePassage ?? n.createdAt;
+  const notes = (debut && fin)
+    ? notesToutes.filter((n) => { const d = new Date(dateNote(n)); return d >= debut && d < fin; })
+    : notesToutes;
 
   // Index totalCompetences par matiereId (dénominateur correct pour chaque matière)
   const totalParMatiere = Object.fromEntries(

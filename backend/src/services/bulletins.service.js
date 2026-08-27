@@ -1,6 +1,7 @@
 import prisma from '../utils/prisma.js';
 import { obtenirPortfolio } from './portfolio.service.js';
 import { genererCommentaireBulletin } from './ia.service.js';
+import { obtenirAnneeActive, bornesTrimestre } from './annees.service.js';
 import PDFDocument from 'pdfkit';
 
 const NIVEAU_LABEL = {
@@ -20,7 +21,13 @@ const NIVEAU_SYMBOLE = {
 // ─── Données bulletin ─────────────────────────────────────────────────────────
 
 export const getDonneesBulletin = async (eleveId, { trimestre = 1, avecCommentaireIA = false } = {}) => {
-  const portfolio = await obtenirPortfolio(eleveId);
+  // Filtre les notes sur la période du trimestre demandé, à partir de l'année
+  // scolaire active. Sans année active configurée, on garde l'historique complet
+  // (periodeFiltre: null) plutôt que d'échouer.
+  const anneeActive = await obtenirAnneeActive();
+  const periodeFiltre = anneeActive ? bornesTrimestre(anneeActive, trimestre) : null;
+
+  const portfolio = await obtenirPortfolio(eleveId, periodeFiltre ?? {});
 
   let commentaireIA = null;
   if (avecCommentaireIA) {
@@ -52,14 +59,14 @@ export const getDonneesBulletin = async (eleveId, { trimestre = 1, avecCommentai
     }
   }
 
-  return { ...portfolio, commentaireIA, trimestre };
+  return { ...portfolio, commentaireIA, trimestre, periodeFiltre };
 };
 
 // ─── Génération PDF ───────────────────────────────────────────────────────────
 
 export const genererPdfBulletin = async (eleveId, trimestre = 1) => {
   const donnees = await getDonneesBulletin(eleveId, { trimestre, avecCommentaireIA: true });
-  const { eleve, stats, moyennesParMatiere, competencesParMatiere, commentaireIA } = donnees;
+  const { eleve, stats, moyennesParMatiere, competencesParMatiere, commentaireIA, periodeFiltre } = donnees;
 
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -92,6 +99,15 @@ export const genererPdfBulletin = async (eleveId, trimestre = 1) => {
       .fontSize(14)
       .font('Helvetica-Bold')
       .text(`Bulletin de compétences — Trimestre ${trimestre}`, 200, 68, { align: 'right', width: 330 });
+
+    if (periodeFiltre) {
+      const fmt = (d) => new Date(d).toLocaleDateString('fr-FR');
+      doc
+        .fontSize(8)
+        .font('Helvetica')
+        .fillColor(gris)
+        .text(`Du ${fmt(periodeFiltre.debut)} au ${fmt(periodeFiltre.fin)}`, 200, 86, { align: 'right', width: 330 });
+    }
 
     doc.moveDown(3);
 

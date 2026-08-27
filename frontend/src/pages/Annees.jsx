@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import {
   CalendarDays, Plus, CheckCircle2, AlertTriangle,
-  X, Check, ArrowRightLeft, Trash2,
+  X, Check, ArrowRightLeft, Trash2, Pencil,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -44,6 +44,17 @@ function ModalCreerAnnee({ onFermer }) {
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1">Fin *</label>
               <input type="date" {...register('fin', { required: true })}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-600 block mb-1">
+              Bornes des trimestres <span className="text-gray-400">(optionnel — sinon découpage en tiers égaux)</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <input type="date" {...register('finTrimestre1')} placeholder="Fin trimestre 1"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="date" {...register('finTrimestre2')} placeholder="Fin trimestre 2"
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
           </div>
@@ -173,6 +184,54 @@ function ModalChangementAnnee({ annee, onFermer }) {
   );
 }
 
+// Bornes des trimestres 1/2 d'une année — édition inline (repli tiers égaux si non renseignées)
+function BornesTrimestres({ annee }) {
+  const [edition, setEdition] = useState(false);
+  const [t1, setT1] = useState(annee.finTrimestre1 ? annee.finTrimestre1.slice(0, 10) : '');
+  const [t2, setT2] = useState(annee.finTrimestre2 ? annee.finTrimestre2.slice(0, 10) : '');
+  const qc = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: () => api.put(`/annees/${annee.id}`, { finTrimestre1: t1 || null, finTrimestre2: t2 || null }).then((r) => r.data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['annees'] }); setEdition(false); },
+  });
+
+  if (!edition) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
+        <span>
+          Trimestres :{' '}
+          {annee.finTrimestre1 && annee.finTrimestre2
+            ? `T1 → ${format(new Date(annee.finTrimestre1), 'd MMM', { locale: fr })} · T2 → ${format(new Date(annee.finTrimestre2), 'd MMM', { locale: fr })}`
+            : 'découpage automatique (tiers égaux)'}
+        </span>
+        <button onClick={() => setEdition(true)} className="text-indigo-500 hover:text-indigo-700" title="Modifier les bornes de trimestre">
+          <Pencil className="w-3 h-3" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 mt-2">
+      <input type="date" value={t1} onChange={(e) => setT1(e.target.value)}
+        className="border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      <span className="text-gray-300 text-xs">→</span>
+      <input type="date" value={t2} onChange={(e) => setT2(e.target.value)}
+        className="border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      <button onClick={() => mutation.mutate()} disabled={mutation.isPending} className="text-emerald-600 hover:text-emerald-700" title="Enregistrer">
+        {mutation.isPending ? <Spinner size="sm" /> : <Check className="w-3.5 h-3.5" />}
+      </button>
+      <button onClick={() => setEdition(false)} className="text-gray-400 hover:text-gray-600" title="Annuler">
+        <X className="w-3.5 h-3.5" />
+      </button>
+      {mutation.error && (
+        <span className="text-xs text-red-500">{mutation.error?.response?.data?.message ?? 'Erreur'}</span>
+      )}
+    </div>
+  );
+}
+
 export default function Annees() {
   const [modalCree, setModalCree] = useState(false);
   const [anneeChangement, setAnneeChangement] = useState(null);
@@ -234,6 +293,7 @@ export default function Annees() {
                     <p className="text-xs text-gray-400 mt-0.5">
                       {format(new Date(annee.debut), 'd MMM yyyy', { locale: fr })} → {format(new Date(annee.fin), 'd MMM yyyy', { locale: fr })}
                     </p>
+                    <BornesTrimestres annee={annee} />
                   </div>
                 </div>
 

@@ -3,16 +3,41 @@ import prisma from '../utils/prisma.js';
 export const listerAnnees = async () =>
   prisma.anneeFormation.findMany({ orderBy: { debut: 'desc' } });
 
+export const obtenirAnneeActive = async () =>
+  prisma.anneeFormation.findFirst({ where: { actif: true } });
+
+// ─── Bornes d'un trimestre pour une année scolaire ───────────────────────────
+// Repli sur un découpage en tiers égaux si finTrimestre1/2 ne sont pas renseignées.
+export const bornesTrimestre = (annee, trimestre) => {
+  const debut = new Date(annee.debut);
+  const fin = new Date(annee.fin);
+  const dureeMs = fin.getTime() - debut.getTime();
+  const t1 = annee.finTrimestre1 ? new Date(annee.finTrimestre1) : new Date(debut.getTime() + dureeMs / 3);
+  const t2 = annee.finTrimestre2 ? new Date(annee.finTrimestre2) : new Date(debut.getTime() + (dureeMs * 2) / 3);
+
+  if (trimestre <= 1) return { debut, fin: t1 };
+  if (trimestre === 2) return { debut: t1, fin: t2 };
+  return { debut: t2, fin };
+};
+
 export const obtenirAnnee = async (id) => {
   const a = await prisma.anneeFormation.findUnique({ where: { id } });
   if (!a) throw Object.assign(new Error('Année introuvable'), { status: 404 });
   return a;
 };
 
-export const creerAnnee = async ({ libelle, debut, fin }) => {
+export const creerAnnee = async ({ libelle, debut, fin, finTrimestre1, finTrimestre2 }) => {
   const existante = await prisma.anneeFormation.findUnique({ where: { libelle } });
   if (existante) throw Object.assign(new Error(`L'année "${libelle}" existe déjà`), { status: 409 });
-  return prisma.anneeFormation.create({ data: { libelle, debut: new Date(debut), fin: new Date(fin) } });
+  return prisma.anneeFormation.create({
+    data: {
+      libelle,
+      debut: new Date(debut),
+      fin: new Date(fin),
+      finTrimestre1: finTrimestre1 ? new Date(finTrimestre1) : null,
+      finTrimestre2: finTrimestre2 ? new Date(finTrimestre2) : null,
+    },
+  });
 };
 
 export const mettreAJourAnnee = async (id, donnees) => {
@@ -20,6 +45,8 @@ export const mettreAJourAnnee = async (id, donnees) => {
   const data = { ...donnees };
   if (data.debut) data.debut = new Date(data.debut);
   if (data.fin) data.fin = new Date(data.fin);
+  if ('finTrimestre1' in data) data.finTrimestre1 = data.finTrimestre1 ? new Date(data.finTrimestre1) : null;
+  if ('finTrimestre2' in data) data.finTrimestre2 = data.finTrimestre2 ? new Date(data.finTrimestre2) : null;
   return prisma.anneeFormation.update({ where: { id }, data });
 };
 
