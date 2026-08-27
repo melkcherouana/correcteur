@@ -15,13 +15,15 @@ router.use(verifierToken);
 const NIVEAUX = ['2nde Pro', '1ère Pro', 'Terminale Pro', 'CAP 1', 'CAP 2', 'BTS 1', 'BTS 2'];
 
 // GET /api/classes?filiereId=&actif=true&search=
-router.get('/', ctrl.lister);
+router.get('/', autoriser('ADMIN', 'ENSEIGNANT'), ctrl.lister);
 
 // GET /api/classes/:id/synthese — tableau de synthèse paliers × élèves
 router.get('/:id/synthese', autoriser('ADMIN', 'ENSEIGNANT'), ctrl.synthese);
 
-// GET /api/classes/:id
-router.get('/:id', ctrl.obtenir);
+// GET /api/classes/:id — inclut la liste des élèves (nom, email) : réservé
+// aux enseignants/admin, un élève n'a pas besoin de voir le trousseau
+// d'une classe (la sienne ou une autre)
+router.get('/:id', autoriser('ADMIN', 'ENSEIGNANT'), ctrl.obtenir);
 
 // POST /api/classes
 router.post(

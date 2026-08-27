@@ -8,8 +8,9 @@ router.use(verifierToken);
 
 // Routes spécifiques AVANT les routes paramétrées /:id
 
-// GET /api/competences/tableau-bord?classeId=&matiereId=
-router.get('/tableau-bord', ctrl.tableauBord);
+// GET /api/competences/tableau-bord?classeId=&matiereId= — grille de classe
+// entière (noms + niveaux de chaque élève) : réservé enseignant/admin
+router.get('/tableau-bord', autoriser('ADMIN', 'ENSEIGNANT'), ctrl.tableauBord);
 
 // GET /api/competences?matiereId=&page=&limite=
 router.get('/', ctrl.lister);

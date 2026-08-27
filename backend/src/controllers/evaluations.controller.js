@@ -40,7 +40,7 @@ export const lister = async (req, res, next) => {
 };
 
 export const obtenir = async (req, res, next) => {
-  try { res.json(await svc.obtenirEvaluation(req.params.id)); }
+  try { res.json(await svc.obtenirEvaluation(req.params.id, req.utilisateur)); }
   catch (err) { next(err); }
 };
 
@@ -70,7 +70,7 @@ export const supprimer = async (req, res, next) => {
 };
 
 export const obtenirNotes = async (req, res, next) => {
-  try { res.json(await svc.obtenirNotesEvaluation(req.params.id)); }
+  try { res.json(await svc.obtenirNotesEvaluation(req.params.id, req.utilisateur)); }
   catch (err) { next(err); }
 };
 

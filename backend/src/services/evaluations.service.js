@@ -104,9 +104,19 @@ export const listerEvaluations = async ({
   return { evaluations, total, page, pages: Math.ceil(total / limite) };
 };
 
-export const obtenirEvaluation = async (id) => {
+export const obtenirEvaluation = async (id, utilisateur) => {
   const e = await prisma.evaluation.findUnique({ where: { id }, include: INCLUDE_DETAIL });
   if (!e) throw erreur('Évaluation introuvable', 404);
+
+  if (utilisateur?.role === 'ELEVE') {
+    const inscrit = await prisma.classeEleve.findFirst({
+      where: { eleveId: utilisateur.id, classeId: e.classeId },
+    });
+    if (!inscrit) throw erreur('Accès refusé', 403);
+    // Un élève ne voit jamais les notes de ses camarades
+    e.notes = e.notes.filter((n) => n.eleveId === utilisateur.id);
+  }
+
   return { ...e, stats: calculerStats(e.notes) };
 };
 
@@ -187,7 +197,7 @@ export const supprimerEvaluation = async (id, utilisateur) => {
 
 // ─── Notes d'une évaluation ───────────────────────────────────────────────────
 
-export const obtenirNotesEvaluation = async (id) => {
+export const obtenirNotesEvaluation = async (id, utilisateur) => {
   const evaluation = await prisma.evaluation.findUnique({
     where: { id },
     include: {
@@ -207,15 +217,25 @@ export const obtenirNotesEvaluation = async (id) => {
   });
   if (!evaluation) throw erreur('Évaluation introuvable', 404);
 
+  if (utilisateur?.role === 'ELEVE') {
+    const inscrit = evaluation.classe.eleves.some(({ eleve }) => eleve.id === utilisateur.id);
+    if (!inscrit) throw erreur('Accès refusé', 403);
+  }
+
   // Construire le tableau de saisie : tous les élèves de la classe avec leur note (ou null)
   const notesParEleve = Object.fromEntries(
     evaluation.notes.map((n) => [n.eleveId, n])
   );
 
-  const grille = evaluation.classe.eleves.map(({ eleve }) => ({
+  let grille = evaluation.classe.eleves.map(({ eleve }) => ({
     eleve,
     note: notesParEleve[eleve.id] ?? null,
   }));
+
+  // Un élève ne voit que sa propre ligne, jamais celles de ses camarades
+  if (utilisateur?.role === 'ELEVE') {
+    grille = grille.filter((g) => g.eleve.id === utilisateur.id);
+  }
 
   return {
     evaluation: { ...evaluation, classe: { id: evaluation.classe.id, nom: evaluation.classe.nom } },
