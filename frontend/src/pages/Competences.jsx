@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Target } from 'lucide-react';
+import { Target, Copy, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 import Card, { CardHeader } from '../components/ui/Card.jsx';
@@ -129,6 +129,7 @@ function VueEnseignant() {
   const qc = useQueryClient();
   const [classeId, setClasseId] = useState('');
   const [matiereId, setMatiereId] = useState('');
+  const [copie, setCopie] = useState(false);
 
   const { data: classes = [] } = useQuery({
     queryKey: ['classes'],
@@ -153,6 +154,30 @@ function VueEnseignant() {
     onSuccess: () =>
       qc.invalidateQueries({ queryKey: ['competences-tableau', classeId, matiereId] }),
   });
+
+  // Grille TSV : coller directement dans Pronote (ou Excel) en respectant l'ordre
+  // élèves/compétences affiché. Case vide = compétence jamais évaluée (distinct
+  // d'un niveau explicitement « Non acquis »), pour ne pas fausser un import.
+  const copierPourPronote = async () => {
+    if (!tableau) return;
+    const lignes = [
+      ['Élève', ...tableau.competences.map((c) => c.code)].join('\t'),
+      ...tableau.eleves.map((eleve) => {
+        const valeurs = tableau.competences.map((c) => {
+          const niveau = tableau.niveaux[eleve.id]?.[c.id];
+          return niveau ? NIVEAU_INFOS[niveau].label : '';
+        });
+        return [`${eleve.nom} ${eleve.prenom}`, ...valeurs].join('\t');
+      }),
+    ];
+    try {
+      await navigator.clipboard.writeText(lignes.join('\n'));
+      setCopie(true);
+      setTimeout(() => setCopie(false), 2000);
+    } catch {
+      alert('Impossible de copier automatiquement — sélectionnez et copiez le tableau manuellement.');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -207,6 +232,20 @@ function VueEnseignant() {
             <CardHeader
               title="Tableau de bord des compétences"
               subtitle={`${tableau.eleves.length} élève${tableau.eleves.length !== 1 ? 's' : ''} · ${tableau.competences.length} compétence${tableau.competences.length !== 1 ? 's' : ''} — cliquer sur un niveau pour le faire évoluer`}
+              action={
+                <button
+                  onClick={copierPourPronote}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+                    copie
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                  title="Copie une grille (élèves × compétences) au format tableur, à coller directement dans Pronote ou Excel"
+                >
+                  {copie ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copie ? 'Copié !' : 'Copier pour Pronote'}
+                </button>
+              }
             />
           </div>
 
@@ -214,20 +253,16 @@ function VueEnseignant() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-t border-gray-50">
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase min-w-[160px]">
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase min-w-[130px] sticky left-0 bg-white">
                     Élève
                   </th>
                   {tableau.competences.map((c) => (
-                    <th key={c.id} className="px-3 py-3 text-center">
-                      <div className="flex flex-col items-center gap-0.5">
-                        <span className="text-xs font-bold text-gray-700">{c.code}</span>
-                        <span
-                          className="text-[10px] text-gray-400 max-w-[80px] text-center leading-tight"
-                          title={c.description}
-                        >
-                          {c.description.length > 30 ? `${c.description.slice(0, 30)}…` : c.description}
-                        </span>
-                      </div>
+                    <th
+                      key={c.id}
+                      className="px-1.5 py-2.5 text-center text-xs font-bold text-gray-700 cursor-help"
+                      title={c.description}
+                    >
+                      {c.code}
                     </th>
                   ))}
                 </tr>
@@ -236,11 +271,11 @@ function VueEnseignant() {
               <tbody className="divide-y divide-gray-50">
                 {tableau.eleves.map((eleve) => (
                   <tr key={eleve.id} className="hover:bg-gray-50/50">
-                    <td className="px-6 py-3 font-medium text-gray-800">
+                    <td className="px-4 py-2 font-medium text-gray-800 sticky left-0 bg-white">
                       {eleve.nom} {eleve.prenom}
                     </td>
                     {tableau.competences.map((c) => (
-                      <td key={c.id} className="px-3 py-3 text-center">
+                      <td key={c.id} className="px-1.5 py-2 text-center">
                         <CelluleNiveau
                           eleveId={eleve.id}
                           competenceId={c.id}
@@ -256,7 +291,7 @@ function VueEnseignant() {
 
                 {/* Ligne statistiques */}
                 <tr className="border-t-2 border-gray-100 bg-gray-50/60">
-                  <td className="px-6 py-2 text-xs font-semibold text-gray-400 uppercase">% Acquis+</td>
+                  <td className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase sticky left-0 bg-gray-50/60">% Acquis+</td>
                   {tableau.competences.map((c) => {
                     const total = tableau.eleves.length;
                     const acquis = tableau.eleves.filter((e) =>
@@ -264,7 +299,7 @@ function VueEnseignant() {
                     ).length;
                     const pct = total > 0 ? Math.round((acquis / total) * 100) : 0;
                     return (
-                      <td key={c.id} className="px-3 py-2 text-center">
+                      <td key={c.id} className="px-1.5 py-2 text-center">
                         <span
                           className={`text-xs font-bold ${
                             pct >= 70 ? 'text-emerald-600' : pct >= 40 ? 'text-amber-600' : 'text-red-500'
