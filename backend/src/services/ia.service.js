@@ -195,7 +195,14 @@ export const corrigerDevoir = async (fileBuffer, mimeType, grille) => {
         text: `Tu es un enseignant expérimenté en lycée professionnel. Tu corriges des travaux d'élèves avec bienveillance, rigueur et objectivité.
 Tu justifies chaque note par des observations précises extraites du travail.
 Tu ne notes que ce qui est présent ou absent dans le document fourni — tu n'inventes pas de contenu.
-Tes retours sont constructifs : tu soulignes les réussites avant les améliorations possibles.`,
+Tes retours sont constructifs : tu soulignes les réussites avant les améliorations possibles.
+
+Style d'écriture pour l'appréciation générale et les justifications :
+— Court : 3 à 4 phrases maximum, jamais plus
+— Naturel et humain : comme si tu parlais directement à l'élève, pas comme un rapport administratif
+— Simple et direct : aucun jargon pédagogique ("mobilise des compétences", "démontre une maîtrise partielle"...)
+— Bienveillant mais honnête : dis clairement ce qui ne va pas, sans détour ni euphémisme
+Exemple : "Bon travail dans l'ensemble, attention aux calculs de TVA qui comportent quelques erreurs." plutôt que "L'apprenant démontre une maîtrise partielle des compétences mobilisées dans cette situation professionnelle."`,
         cache_control: { type: 'ephemeral' },
       },
     ],
@@ -212,7 +219,7 @@ Tes retours sont constructifs : tu soulignes les réussites avant les améliorat
               type: 'string',
               enum: ['Insuffisant', 'Passable', 'Assez Bien', 'Bien', 'Très Bien'],
             },
-            appreciationGenerale: { type: 'string', description: 'Appréciation synthétique du travail (3-5 phrases)' },
+            appreciationGenerale: { type: 'string', description: 'Appréciation synthétique, maximum 3-4 phrases, ton naturel et direct comme un prof qui parle à son élève' },
             criteres: {
               type: 'array',
               items: {
@@ -221,7 +228,7 @@ Tes retours sont constructifs : tu soulignes les réussites avant les améliorat
                   nom: { type: 'string' },
                   noteObtenue: { type: 'number' },
                   noteMax: { type: 'number' },
-                  justification: { type: 'string', description: 'Argument factuel tiré du travail' },
+                  justification: { type: 'string', description: 'Argument factuel tiré du travail, une phrase courte et directe' },
                   pointsForts: { type: 'array', items: { type: 'string' } },
                   pointsAmeliorer: { type: 'array', items: { type: 'string' } },
                 },
@@ -281,7 +288,9 @@ Tes questions couvrent progressivement les niveaux de la taxonomie de Bloom :
 3. Application (mise en situation)
 4. Analyse (décomposition, liens)
 5. Évaluation / Création (jugement, proposition)
-Les questions doivent être ancrées dans le contexte professionnel réel de la filière.`,
+Les questions doivent être ancrées dans le contexte professionnel réel de la filière.
+
+Formule chaque question de façon courte, naturelle et directe, comme si tu parlais à voix haute à l'élève — pas de tournure administrative ni de jargon pédagogique.`,
         cache_control: { type: 'ephemeral' },
       },
     ],
@@ -845,10 +854,12 @@ export const genererCommentaireBulletin = async ({
 Tes commentaires respectent ces règles absolues :
 — Personnalisés : jamais de phrase générique copiable pour n'importe quel élève
 — Précis : appuie-toi sur les données chiffrées et les compétences fournies
-— Concis : 2 à 4 phrases maximum
-— Bienveillants dans la forme même quand le fond est critique
-— En français soutenu, sans fautes, sans jargon excessif
+— Courts : 3 à 4 phrases maximum, jamais plus
+— Naturels et humains : comme un prof qui parle à son élève, pas un rapport administratif
+— Simples et directs : sans jargon pédagogique ni tournures alambiquées
+— Bienveillants mais honnêtes : tu dis clairement ce qui ne va pas, sans détour
 — Jamais stigmatisants, jamais offensants
+Exemple : "Bon travail dans l'ensemble, attention aux calculs de TVA qui comportent quelques erreurs." plutôt que "L'apprenant démontre une maîtrise partielle des compétences mobilisées dans cette situation professionnelle."
 Tonalité demandée : ${INSTRUCTIONS_TONALITE[tonalite] ?? INSTRUCTIONS_TONALITE.bienveillant}`,
         cache_control: { type: 'ephemeral' },
       },
@@ -862,7 +873,7 @@ Tonalité demandée : ${INSTRUCTIONS_TONALITE[tonalite] ?? INSTRUCTIONS_TONALITE
           properties: {
             commentaire: {
               type: 'string',
-              description: 'Commentaire final prêt à imprimer dans le bulletin (2-4 phrases)',
+              description: 'Commentaire final prêt à imprimer dans le bulletin, maximum 3-4 phrases, ton naturel et direct',
             },
             pointsForts: {
               type: 'array',
@@ -1271,7 +1282,14 @@ export const genererAppreciationRemediation = async ({
         type: 'text',
         text: `Tu es un enseignant bienveillant en lycée professionnel.
 Tu rédiges des appréciations personnalisées et des plans de remédiation concrets et réalistes.
-Ton appréciation valorise toujours ce qui fonctionne avant de pointer les axes de progrès.`,
+Ton appréciation valorise toujours ce qui fonctionne avant de pointer les axes de progrès.
+
+Style d'écriture pour le champ "appreciation" :
+— Court : 3 à 4 phrases maximum, jamais plus
+— Naturel et humain : comme si tu parlais directement à l'élève, pas comme un rapport
+— Simple et direct : aucun jargon pédagogique
+— Honnête : tu nommes clairement ce qui ne va pas, sans détour
+Exemple : "Bon travail dans l'ensemble, attention aux calculs de TVA qui comportent quelques erreurs." plutôt que "L'apprenant démontre une maîtrise partielle des compétences mobilisées dans cette situation professionnelle."`,
         cache_control: { type: 'ephemeral' },
       },
     ],
@@ -1283,7 +1301,7 @@ Ton appréciation valorise toujours ce qui fonctionne avant de pointer les axes 
           type: 'object',
           required: ['appreciation', 'niveauReussite', 'pointsForts', 'axesProgres', 'remediations'],
           properties: {
-            appreciation: { type: 'string' },
+            appreciation: { type: 'string', description: 'Maximum 3-4 phrases, ton naturel et direct comme un prof qui parle à son élève' },
             niveauReussite: {
               type: 'string',
               enum: ['insuffisant', 'en_voie', 'acquis', 'depasse'],
