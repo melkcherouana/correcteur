@@ -160,7 +160,8 @@ export const corrigerSoumissionIA = async (soumissionId) => {
     await creerNotification(
       soumission.eleveId,
       'Correction disponible',
-      `Votre devoir "${soumission.evaluation.titre}" a été corrigé automatiquement — palier : ${palierLabel}.`
+      `Votre devoir "${soumission.evaluation.titre}" a été corrigé automatiquement — palier : ${palierLabel}.`,
+      soumission.evaluationId
     ).catch(() => null);
   }
 

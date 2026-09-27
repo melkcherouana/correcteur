@@ -164,7 +164,8 @@ export const saisirNotesBulk = async (evaluationId, notes, enseignantId) => {
       creerNotification(
         eleveId,
         'Nouvelle note disponible',
-        `Votre note pour "${evaluation?.titre ?? 'une évaluation'}" a été saisie.`
+        `Votre note pour "${evaluation?.titre ?? 'une évaluation'}" a été saisie.`,
+        evaluationId
       ).catch(() => null)
     )
   );
@@ -175,7 +176,8 @@ export const saisirNotesBulk = async (evaluationId, notes, enseignantId) => {
     await creerNotification(
       enseignantId,
       `Élèves en difficulté — ${evaluation?.titre ?? 'évaluation'}`,
-      `${elevesNovice.length} élève${elevesNovice.length > 1 ? 's' : ''} ${elevesNovice.length > 1 ? 'ont obtenu' : 'a obtenu'} le palier Novice. Pensez à analyser leurs compétences fragiles.`
+      `${elevesNovice.length} élève${elevesNovice.length > 1 ? 's' : ''} ${elevesNovice.length > 1 ? 'ont obtenu' : 'a obtenu'} le palier Novice. Pensez à analyser leurs compétences fragiles.`,
+      evaluationId
     ).catch(() => null);
   }
 

@@ -1240,6 +1240,7 @@ export default function EvaluationDetail() {
   const { utilisateur } = useAuth();
   const qc = useQueryClient();
   const [erreurSauvegarde, setErreurSauvegarde] = useState(null);
+  const [confirmerSuppr, setConfirmerSuppr] = useState(false);
 
   const estEnseignant = ['ADMIN', 'ENSEIGNANT'].includes(utilisateur?.role);
   const estEleve = utilisateur?.role === 'ELEVE';
@@ -1271,6 +1272,18 @@ export default function EvaluationDetail() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['evaluation', id, 'notes'] });
       qc.invalidateQueries({ queryKey: ['evaluations'] });
+    },
+  });
+
+  // Suppression définitive (soumissions, notes, corrections IA, notifications)
+  const supprimerEvaluation = useMutation({
+    mutationFn: () => api.delete(`/evaluations/${id}`),
+    onSuccess: () => {
+      qc.removeQueries({ queryKey: ['evaluation', id] });
+      qc.invalidateQueries({ queryKey: ['evaluations'] });
+      qc.invalidateQueries({ queryKey: ['notifs'] });
+      qc.invalidateQueries({ queryKey: ['notifs-count'] });
+      navigate('/evaluations');
     },
   });
 
@@ -1330,9 +1343,53 @@ export default function EvaluationDetail() {
             )}
           </div>
           {estEnseignant && (
-            <MenuStatut evaluation={evaluation} onChanger={(s) => changerStatut.mutate(s)} />
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <MenuStatut evaluation={evaluation} onChanger={(s) => changerStatut.mutate(s)} />
+              <button
+                onClick={() => setConfirmerSuppr(true)}
+                className="flex items-center gap-1.5 px-3 py-2 border border-red-200 text-red-600 text-sm rounded-lg hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" /> Supprimer l'évaluation
+              </button>
+            </div>
           )}
         </div>
+
+        {/* Confirmation de suppression */}
+        {estEnseignant && confirmerSuppr && (
+          <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-start gap-2 text-sm text-red-700">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <p>
+                <strong>Supprimer définitivement « {evaluation.titre} » ?</strong><br />
+                Les rendus des élèves ({soumissions.length}), les notes saisies ({stats.nbSaisies}),
+                les corrections IA et les notifications liées seront supprimés. Cette action est irréversible.
+              </p>
+            </div>
+            {supprimerEvaluation.isError && (
+              <p className="text-sm text-red-600">
+                {supprimerEvaluation.error?.response?.data?.message ?? 'Erreur lors de la suppression'}
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => { setConfirmerSuppr(false); supprimerEvaluation.reset(); }}
+                disabled={supprimerEvaluation.isPending}
+                className="px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-white"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => supprimerEvaluation.mutate()}
+                disabled={supprimerEvaluation.isPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                {supprimerEvaluation.isPending ? 'Suppression…' : 'Supprimer définitivement'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Stats rapides */}
         <div className="flex gap-6 mt-4 pt-4 border-t border-gray-50">

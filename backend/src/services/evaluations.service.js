@@ -191,8 +191,42 @@ export const supprimerEvaluation = async (id, utilisateur) => {
   const evaluation = await prisma.evaluation.findUnique({ where: { id } });
   if (!evaluation) throw erreur('Évaluation introuvable', 404);
   verifierProprietaire(evaluation, utilisateur);
-  // Archivage logique — préserve les notes existantes
-  await prisma.evaluation.update({ where: { id }, data: { statut: 'ARCHIVEE' } });
+
+  // Destinataires possibles des notifications liées : élèves de la classe + créateur
+  const eleves = await prisma.classeEleve.findMany({
+    where: { classeId: evaluation.classeId },
+    select: { eleveId: true },
+  });
+  const destinataires = [...eleves.map((e) => e.eleveId), evaluation.createurId];
+
+  // Suppression définitive en cascade, dans une transaction pour ne rien laisser
+  // à moitié supprimé. Les suppressions explicites doublent les ON DELETE CASCADE
+  // du schéma. Note : les niveaux CompetenceEleve mis à jour par la correction IA
+  // ne sont pas liés à l'évaluation et sont donc conservés.
+  await prisma.$transaction([
+    // Notifications rattachées à l'évaluation
+    prisma.notification.deleteMany({ where: { evaluationId: id } }),
+    // Anciennes notifications créées avant le rattachement : repérées par le titre de l'évaluation
+    prisma.notification.deleteMany({
+      where: {
+        evaluationId: null,
+        userId: { in: destinataires },
+        OR: [
+          { message: { contains: `"${evaluation.titre}"` } },
+          { titre: `Élèves en difficulté — ${evaluation.titre}` },
+        ],
+      },
+    }),
+    // Soumissions des élèves (fichiers + corrections IA stockées dans resultatIA)
+    prisma.soumission.deleteMany({ where: { evaluationId: id } }),
+    // Notes et historique des modifications
+    prisma.note.deleteMany({ where: { evaluationId: id } }),
+    prisma.historiqueNote.deleteMany({ where: { evaluationId: id } }),
+    // Compétences ciblées et détail CCF
+    prisma.evaluationCompetence.deleteMany({ where: { evaluationId: id } }),
+    prisma.ccfDetail.deleteMany({ where: { evaluationId: id } }),
+    prisma.evaluation.delete({ where: { id } }),
+  ]);
 };
 
 // ─── Notes d'une évaluation ───────────────────────────────────────────────────

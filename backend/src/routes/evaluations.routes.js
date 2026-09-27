@@ -69,7 +69,9 @@ router.patch(
   ctrl.changerStatut
 );
 
-// DELETE /api/evaluations/:id — archivage logique
+// DELETE /api/evaluations/:id — suppression définitive en cascade
+// (soumissions, corrections IA, notes, historique, notifications)
+// L'archivage se fait via PATCH /:id/statut
 router.delete('/:id', autoriser('ADMIN', 'ENSEIGNANT'), ctrl.supprimer);
 
 // ─── Sujet / Énoncé (déposé par l'enseignant) ────────────────────────────────

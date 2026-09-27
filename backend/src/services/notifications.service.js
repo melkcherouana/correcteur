@@ -4,8 +4,10 @@ const erreur = (msg, status) => Object.assign(new Error(msg), { status });
 
 // ─── Créer une notification (usage interne) ──────────────────────────────────
 
-export const creerNotification = (userId, titre, message) =>
-  prisma.notification.create({ data: { userId, titre, message } });
+// evaluationId (optionnel) : rattache la notification à une évaluation pour
+// qu'elle soit supprimée en cascade avec celle-ci
+export const creerNotification = (userId, titre, message, evaluationId = null) =>
+  prisma.notification.create({ data: { userId, titre, message, evaluationId } });
 
 // ─── Lecture ──────────────────────────────────────────────────────────────────
 

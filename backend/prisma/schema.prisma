@@ -263,6 +263,7 @@ model Evaluation {
   soumissions Soumission[]
   ccfDetail   CcfDetail?
   competences EvaluationCompetence[]
+  notifications Notification[]
 
   @@map("evaluations")
 }
@@ -350,9 +351,14 @@ model Notification {
   message   String
   lue       Boolean  @default(false)
   lueAt     DateTime?
+  // Évaluation à l'origine de la notification (supprimée avec elle)
+  evaluationId String?
   createdAt DateTime @default(now())
 
   utilisateur Utilisateur @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evaluation  Evaluation? @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+
+  @@index([evaluationId])
 
   @@map("notifications")
 }
