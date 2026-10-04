@@ -1,11 +1,12 @@
 services:
   - type: web
     name: evalpro-api
-    env: node
-    plan: free
+    # Image Docker (backend/Dockerfile) : embarque LibreOffice pour l'export des copies corrigées
+    runtime: docker
+    plan: starter
     rootDir: backend
-    buildCommand: npm install
-    startCommand: npm start
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
