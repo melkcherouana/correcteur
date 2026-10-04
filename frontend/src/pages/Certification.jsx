@@ -260,14 +260,31 @@ const COULEURS_POLES = [
 const triNaturel = (a = '', b = '') => a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' });
 const numero = (texte) => Number(texte?.match(/\d+/)?.[0] ?? Infinity);
 
+// Premier mot significatif d'un libellé (« Pôle 1 : La réception des produits » → « Réception »),
+// en sautant articles, prépositions, « Pôle », numéros et codes ; '' si aucun
+const MOTS_VIDES = new Set([
+  'le', 'la', 'les', 'l', 'un', 'une', 'des', 'de', 'du', 'd', 'et', 'à', 'a', 'au', 'aux', 'en', 'pour', 'sur', 'par',
+  'pôle', 'pole', 'compétence', 'competence', 'bloc',
+]);
+const motCle = (texte = '') => {
+  for (const brut of texte.split(/[\s'’:;,.–—()/]+|\s-\s/)) {
+    const mot = brut.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '');
+    if (!mot || /\d/.test(brut) || MOTS_VIDES.has(mot.toLowerCase())) continue;
+    return mot.charAt(0).toUpperCase() + mot.slice(1);
+  }
+  return '';
+};
+
 // Pôle d'une compétence : celui du référentiel s'il existe, sinon le préfixe du code (« C1.2 » → « C1 »)
 const poleDe = (c) => {
   const code = c.pole?.code ?? pole(c.codeCourt ?? c.code);
   const n = numero(code);
+  const libelle = Number.isFinite(n) ? `P${n}` : code;
+  const mot = motCle(c.pole?.titre);
   return {
     cle: c.pole?.id ?? `code:${code}`,
-    libelle: Number.isFinite(n) ? `P${n}` : code,
-    titre: c.pole?.titre ?? `Pôle ${code}`,
+    libelle: mot ? `${libelle} · ${mot}` : libelle,
+    titre: c.pole?.titre || libelle,
     ordre: Number.isFinite(n) ? n : (c.pole?.ordre ?? Infinity),
   };
 };
@@ -502,33 +519,39 @@ function OngletGrille() {
                     key={p.cle}
                     colSpan={p.competences.length}
                     title={p.titre}
-                    className={`px-1 py-1.5 font-bold text-center border-l-2 border-white dark:border-slate-800 ${p.couleur.entete}`}
+                    style={{ maxWidth: 48 * p.competences.length }}
+                    className={`px-1 py-1.5 font-bold text-center whitespace-nowrap overflow-hidden text-ellipsis border-l-2 border-white dark:border-slate-800 ${p.couleur.entete}`}
                   >
                     {p.libelle}
                   </th>
                 ))}
               </tr>
-              {/* Ligne compétences : code court en vertical, libellé en info-bulle */}
+              {/* Ligne compétences : code court + premier mot en vertical, libellé complet en info-bulle.
+                  Hauteur automatique (celle du texte le plus long) : pas de hauteur fixe ni d'espace vide */}
               <tr>
-                {competences.map((c) => (
-                  <th
-                    key={c.id}
-                    title={c.description}
-                    style={{ width: 48, minWidth: 48, maxWidth: 48, height: 90, overflow: 'hidden' }}
-                    className={`px-0 py-1 align-bottom text-center font-mono font-bold cursor-help border-b border-gray-200 dark:border-slate-600 ${c.couleur.sous} ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
-                  >
-                    {/* Texte vertical isolé dans le span : le writing-mode ne s'applique qu'à lui */}
-                    <span
-                      style={{
-                        writingMode: 'vertical-rl', transform: 'rotate(180deg)',
-                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                        maxHeight: 82, fontSize: 11, display: 'inline-block',
-                      }}
+                {competences.map((c) => {
+                  const mot = motCle(c.description);
+                  return (
+                    <th
+                      key={c.id}
+                      title={c.description}
+                      style={{ width: 48, minWidth: 48, maxWidth: 48, height: 'auto', padding: 4, overflow: 'hidden', lineHeight: 1 }}
+                      className={`align-bottom text-center cursor-help border-b border-gray-200 dark:border-slate-600 ${c.couleur.sous} ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
                     >
-                      {c.codeCourt}
-                    </span>
-                  </th>
-                ))}
+                      {/* Texte vertical isolé dans le span (bloc, sans ligne de base) : le writing-mode ne s'applique qu'à lui */}
+                      <span
+                        style={{
+                          writingMode: 'vertical-rl', transform: 'rotate(180deg)',
+                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                          maxHeight: 140, fontSize: 11, display: 'block', margin: '0 auto',
+                        }}
+                      >
+                        <span className="font-mono font-bold">{c.codeCourt}</span>
+                        {mot && <span className="font-normal"> {mot}</span>}
+                      </span>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
