@@ -526,9 +526,9 @@ function OngletGrille() {
 
       {classeId && !isLoading && competences.length > 0 && (
         <div className="space-y-3">
-        {/* Le tableau tient à l'écran : défilement interne, en-têtes et colonnes Élève/IA fixes */}
+        {/* Zone de défilement ajustée à la largeur du tableau ; en-têtes et colonnes Élève/IA fixes */}
         <div
-          className="overflow-auto rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800"
+          className="w-fit max-w-full overflow-auto rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800"
           style={{ maxHeight: 'calc(100vh - 220px)' }}
         >
           {/* border-separate : en border-collapse, les bordures des cellules sticky ne suivent pas le défilement */}
@@ -598,7 +598,7 @@ function OngletGrille() {
                   <tr style={{ height: HAUTEUR_LIGNE_ELEVE }} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/40">
                     <td
                       style={{ left: 0, zIndex: Z_COLONNES, width: LARGEUR_ELEVE, minWidth: LARGEUR_ELEVE, maxWidth: LARGEUR_ELEVE }}
-                      className="sticky bg-white dark:bg-slate-800 px-4 py-0 text-[12px] leading-tight font-medium text-gray-900 dark:text-slate-100 whitespace-nowrap overflow-hidden text-ellipsis border-b border-b-gray-100 dark:border-b-slate-700 border-r border-gray-200 dark:border-slate-600"
+                      className="sticky bg-white dark:bg-slate-800 px-4 py-0 text-[11px] leading-tight font-medium text-gray-900 dark:text-slate-100 whitespace-nowrap overflow-hidden text-ellipsis border-b border-b-gray-100 dark:border-b-slate-700 border-r border-gray-200 dark:border-slate-600"
                     >
                       {eleve.nom} {eleve.prenom}
                     </td>
