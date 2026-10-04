@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
-import Card, { CardHeader } from '../components/ui/Card.jsx';
+import Card from '../components/ui/Card.jsx';
 import Spinner from '../components/ui/Spinner.jsx';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -76,7 +76,7 @@ function SelectMatiere({ value, onChange, compact = false }) {
   );
 }
 
-function SelectEleve({ classeId, value, onChange }) {
+function SelectEleve({ classeId, value, onChange, compact = false }) {
   const { data: detail } = useQuery({
     queryKey: ['classe', classeId],
     queryFn: () => api.get(`/classes/${classeId}`).then((r) => r.data),
@@ -87,7 +87,7 @@ function SelectEleve({ classeId, value, onChange }) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      className={`border border-gray-200 rounded-lg px-3 ${compact ? 'py-1 text-xs' : 'py-2 text-sm'} focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50`}
       disabled={!classeId}
     >
       <option value="">— Élève —</option>
@@ -125,20 +125,13 @@ function OngletRadar({ estEleve, monId }) {
   const eleve = data?.eleve;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
+      {/* Barre de filtres compacte, identique à celle de la grille de synthèse */}
       {!estEleve && (
-        <Card>
-          <div className="flex flex-wrap gap-3 items-end">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">Classe</label>
-              <SelectClasse value={classeId} onChange={(v) => { setClasseId(v); setEleveId(''); }} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">Élève</label>
-              <SelectEleve classeId={classeId} value={eleveId} onChange={setEleveId} />
-            </div>
-          </div>
-        </Card>
+        <div className="flex flex-wrap gap-2 items-center">
+          <SelectClasse compact value={classeId} onChange={(v) => { setClasseId(v); setEleveId(''); }} />
+          <SelectEleve compact classeId={classeId} value={eleveId} onChange={setEleveId} />
+        </div>
       )}
 
       {!idCible && (
@@ -717,28 +710,17 @@ function OngletExport({ estEleve, monId }) {
   };
 
   return (
-    <div className="space-y-6 max-w-xl">
-      <Card>
-        <CardHeader
-          title="Sélectionner un élève"
-          subtitle="Choisissez l'élève dont vous souhaitez exporter les documents"
-        />
-        {!estEleve && (
-          <div className="flex flex-wrap gap-3 mb-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">Classe</label>
-              <SelectClasse value={classeId} onChange={(v) => { setClasseId(v); setEleveId(''); }} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">Élève</label>
-              <SelectEleve classeId={classeId} value={eleveId} onChange={setEleveId} />
-            </div>
-          </div>
-        )}
-        {estEleve && (
-          <p className="text-sm text-gray-600 mb-4">Vous exporterez votre propre profil de certification.</p>
-        )}
-      </Card>
+    <div className="space-y-3 max-w-xl">
+      {/* Barre de filtres compacte, identique à celle de la grille de synthèse */}
+      {!estEleve ? (
+        <div className="flex flex-wrap gap-2 items-center">
+          <SelectClasse compact value={classeId} onChange={(v) => { setClasseId(v); setEleveId(''); }} />
+          <SelectEleve compact classeId={classeId} value={eleveId} onChange={setEleveId} />
+          {!eleveId && <span className="text-xs text-gray-400">Choisissez l'élève dont vous souhaitez exporter les documents</span>}
+        </div>
+      ) : (
+        <p className="text-xs text-gray-500">Vous exporterez votre propre profil de certification.</p>
+      )}
 
       {/* PDF certification */}
       <Card>
