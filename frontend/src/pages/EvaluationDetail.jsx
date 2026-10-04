@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   ChevronLeft, FileText, Sparkles, CheckCircle2,
   Upload, AlertCircle, ChevronDown, ChevronUp, Clock, MessageSquare,
-  Download, Trash2, BookOpen, Target, Save, Eye,
+  Download, Trash2, BookOpen, Target, Save, Eye, FileDown,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -878,6 +878,71 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
     }
   };
 
+  // ─── Export des copies corrigées (Word annoté + PDF fusionné) ───────────────
+  const [exportEnCours, setExportEnCours] = useState(null); // { fait, total } pendant l'analyse
+  const [annotationEnCours, setAnnotationEnCours] = useState(null);
+
+  const estDocx = (s) => s.fichierType?.includes('wordprocessingml') || s.fichierNom?.toLowerCase().endsWith('.docx');
+  const copiesExportables = soumissions.filter((s) => s.corrigeeIA && s.resultatIA && estDocx(s));
+
+  const enregistrerBlob = (blob, nom) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = nom;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Le message d'erreur d'une requête « blob » arrive lui aussi sous forme de blob
+  const messageErreurBlob = async (err, defaut) => {
+    try {
+      return JSON.parse(await err.response.data.text()).message ?? defaut;
+    } catch {
+      return err?.response?.data?.message ?? defaut;
+    }
+  };
+
+  const telechargerCopieAnnotee = async (s) => {
+    setAnnotationEnCours(s.id);
+    try {
+      const resp = await api.get(`/evaluations/${evaluationId}/soumissions/${s.id}/copie-annotee`, { responseType: 'blob' });
+      enregistrerBlob(resp.data, s.fichierNom.replace(/\.docx$/i, '') + '_corrigé.docx');
+      qc.invalidateQueries({ queryKey: ['evaluation', evaluationId, 'soumissions'] });
+    } catch (err) {
+      alert(await messageErreurBlob(err, 'Erreur lors de l\'annotation de la copie'));
+    } finally {
+      setAnnotationEnCours(null);
+    }
+  };
+
+  // Analyse IA copie par copie (évite un délai d'attente sur une seule requête), puis PDF fusionné
+  const exporterCopiesCorrigees = async () => {
+    const aAnalyser = copiesExportables.filter((s) => !s.resultatIA.annotationsCopie);
+    setExportEnCours({ fait: 0, total: aAnalyser.length });
+    try {
+      const echecs = [];
+      for (const [i, s] of aAnalyser.entries()) {
+        try {
+          await api.post(`/evaluations/${evaluationId}/soumissions/${s.id}/analyser-copie`);
+        } catch (err) {
+          echecs.push(`${s.eleve.nom} ${s.eleve.prenom} : ${err?.response?.data?.message ?? 'erreur IA'}`);
+        }
+        setExportEnCours({ fait: i + 1, total: aAnalyser.length });
+      }
+      if (echecs.length && !confirm(`Analyse impossible pour :\n${echecs.join('\n')}\n\nGénérer le PDF avec les autres copies ?`)) return;
+
+      setExportEnCours({ fait: aAnalyser.length, total: aAnalyser.length, pdf: true });
+      const resp = await api.get(`/evaluations/${evaluationId}/copies-corrigees`, { responseType: 'blob' });
+      enregistrerBlob(resp.data, `Copies corrigées - ${evaluation.titre}.pdf`);
+    } catch (err) {
+      alert(await messageErreurBlob(err, 'Erreur lors de l\'export des copies corrigées'));
+    } finally {
+      setExportEnCours(null);
+      qc.invalidateQueries({ queryKey: ['evaluation', evaluationId, 'soumissions'] });
+    }
+  };
+
   const genererQuestions = async (eleveId, resultatIA) => {
     if (questions[eleveId]) {
       setQuestionsOuvertes((p) => ({ ...p, [eleveId]: !p[eleveId] }));
@@ -940,6 +1005,21 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
           )}
         </div>
         <div className="flex gap-2">
+          {copiesExportables.length > 0 && (
+            <button
+              onClick={exporterCopiesCorrigees}
+              disabled={!!exportEnCours || corrigeEnCours.size > 0}
+              title="Annote chaque copie Word (erreurs, points réussis, commentaires) et les regroupe dans un PDF avec page de garde"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 rounded-lg text-sm font-medium disabled:opacity-50 transition-colors"
+            >
+              {exportEnCours ? <Spinner size="sm" /> : <FileDown className="w-4 h-4" />}
+              {!exportEnCours
+                ? `Copies corrigées (${copiesExportables.length})`
+                : exportEnCours.pdf
+                  ? 'Génération du PDF…'
+                  : `Analyse des copies… ${exportEnCours.fait}/${exportEnCours.total}`}
+            </button>
+          )}
           {nbNonCorrigees > 0 && evaluation.statut !== 'ARCHIVEE' && (
             <button
               onClick={corrigerTout}
@@ -1014,6 +1094,17 @@ function TableauCorrection({ evaluationId, evaluation, grille, soumissions, onSa
                         >
                           <Download className="w-3.5 h-3.5" />
                         </button>
+                        {estDocx(soumission) && (
+                          <button
+                            onClick={() => telechargerCopieAnnotee(soumission)}
+                            disabled={annotationEnCours === soumission.id || !!exportEnCours}
+                            title="Télécharger la copie Word annotée"
+                            className="flex items-center gap-1 px-2 py-0.5 text-xs text-indigo-600 hover:bg-indigo-50 rounded disabled:opacity-50 flex-shrink-0"
+                          >
+                            {annotationEnCours === soumission.id ? <Spinner size="sm" /> : <FileDown className="w-3.5 h-3.5" />}
+                            {annotationEnCours === soumission.id ? 'Annotation…' : 'Copie annotée'}
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">

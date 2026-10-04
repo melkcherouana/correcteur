@@ -122,4 +122,15 @@ router.post('/:id/soumissions/:sid/corriger-ia', autoriser('ADMIN', 'ENSEIGNANT'
 // élève : télécharger son propre fichier (vérifié dans le service)
 router.get('/:id/soumissions/:sid/fichier', autoriser('ADMIN', 'ENSEIGNANT', 'ELEVE'), soumCtrl.telechargerFichier);
 
+// ─── Export des copies corrigées ──────────────────────────────────────────────
+
+// POST /api/evaluations/:id/soumissions/:sid/analyser-copie — enseignant : analyse IA détaillée (erreurs localisées)
+router.post('/:id/soumissions/:sid/analyser-copie', autoriser('ADMIN', 'ENSEIGNANT'), soumCtrl.analyserCopie);
+
+// GET /api/evaluations/:id/soumissions/:sid/copie-annotee — enseignant : copie Word annotée
+router.get('/:id/soumissions/:sid/copie-annotee', autoriser('ADMIN', 'ENSEIGNANT'), soumCtrl.telechargerCopieAnnotee);
+
+// GET /api/evaluations/:id/copies-corrigees — enseignant : PDF de toutes les copies annotées
+router.get('/:id/copies-corrigees', autoriser('ADMIN', 'ENSEIGNANT'), soumCtrl.exporterCopiesCorrigees);
+
 export default router;

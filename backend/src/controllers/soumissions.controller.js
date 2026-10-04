@@ -76,3 +76,40 @@ export const telechargerFichier = async (req, res, next) => {
     next(err);
   }
 };
+
+// En-tête de téléchargement compatible accents (cf. telechargerFichier)
+const envoyerFichier = (res, nom, type, buffer) => {
+  const nomAscii = nom.replace(/[^\x20-\x7E]/g, '_');
+  res.set({
+    'Content-Type': type,
+    'Content-Disposition': `attachment; filename="${nomAscii}"; filename*=UTF-8''${encodeURIComponent(nom)}`,
+    'Content-Length': buffer.length,
+  });
+  res.send(buffer);
+};
+
+export const analyserCopie = async (req, res, next) => {
+  try {
+    res.json(await service.analyserCopieIA(req.params.id, req.params.sid, { forcer: req.body?.forcer === true }));
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const telechargerCopieAnnotee = async (req, res, next) => {
+  try {
+    const { nom, buffer } = await service.genererCopieAnnotee(req.params.id, req.params.sid);
+    envoyerFichier(res, nom, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const exporterCopiesCorrigees = async (req, res, next) => {
+  try {
+    const { nom, buffer } = await service.genererPdfCopies(req.params.id);
+    envoyerFichier(res, nom, 'application/pdf', buffer);
+  } catch (err) {
+    next(err);
+  }
+};

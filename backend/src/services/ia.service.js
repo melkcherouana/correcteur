@@ -1347,3 +1347,102 @@ Génère une appréciation personnalisée et un plan de remédiation adapté.`,
 
   return extraireOutil(response);
 };
+
+// ─── 10. Annotation détaillée d'une copie (export des copies corrigées) ───────
+
+export const annoterCopie = async ({ texteCopie, sujet, resultat, contexte = {} }) => {
+  const contenuSujet = sujet ? await preparerFichier(sujet.buffer, sujet.mimeType) : [];
+
+  const response = await anthropic.messages.create({
+    model: MODELE,
+    max_tokens: 8000,
+    system: [
+      {
+        type: 'text',
+        text: `Tu es un enseignant de lycée professionnel qui annote une copie d'élève, comme tu le ferais au stylo rouge.
+Tu relèves précisément :
+— les erreurs de calcul (opération fausse, mauvais report, arrondi, unité)
+— les erreurs d'orthographe, de grammaire et de conjugaison
+— les informations manquantes (élément attendu absent, justification oubliée, champ non rempli)
+— les erreurs de procédure (mauvaise méthode, étapes dans le mauvais ordre, mauvaise formule)
+Tu signales aussi les points corrects importants, pour que l'élève voie ce qu'il a réussi.
+
+RÈGLES ABSOLUES pour le champ "extrait" :
+— Recopie le passage EXACTEMENT tel qu'il figure dans la copie, caractère pour caractère (mêmes fautes, mêmes espaces, même ponctuation)
+— Un extrait tient dans un seul paragraphe ou une seule cellule de tableau, jamais à cheval sur deux
+— Il doit être court et ciblé : le mot fautif, le résultat faux, la ligne concernée (3 à 80 caractères)
+— N'invente jamais un extrait qui n'est pas dans la copie
+
+Explications : une phrase courte, simple et directe, adressée à l'élève, sans jargon. Donne la bonne réponse quand c'est possible.
+Tu restes cohérent avec la note et l'appréciation déjà attribuées.`,
+        cache_control: { type: 'ephemeral' },
+      },
+    ],
+    tools: [
+      {
+        name: 'annoter_copie',
+        description: 'Annote une copie d\'élève : erreurs localisées, points corrects, éléments manquants et axes de progrès',
+        input_schema: {
+          type: 'object',
+          properties: {
+            annotations: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  extrait: { type: 'string', description: 'Passage recopié à l\'identique depuis la copie (3 à 80 caractères, un seul paragraphe)' },
+                  categorie: {
+                    type: 'string',
+                    enum: ['calcul', 'orthographe', 'manquant', 'procedure', 'correct'],
+                    description: '"manquant" : passage où une information attendue fait défaut ; "correct" : point réussi',
+                  },
+                  explication: { type: 'string', description: 'Explication courte adressée à l\'élève' },
+                  correction: { type: 'string', description: 'Bonne réponse ou formulation correcte, si applicable' },
+                  reponseFausse: { type: 'boolean', description: 'true si le passage est une réponse fausse à barrer' },
+                },
+                required: ['extrait', 'categorie', 'explication'],
+              },
+            },
+            informationsManquantes: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Éléments attendus totalement absents de la copie, qu\'on ne peut rattacher à aucun passage',
+            },
+            axesProgres: {
+              type: 'array',
+              items: { type: 'string' },
+              maxItems: 3,
+              description: 'Les 3 axes de progrès prioritaires, formulés simplement',
+            },
+          },
+          required: ['annotations', 'informationsManquantes', 'axesProgres'],
+        },
+      },
+    ],
+    tool_choice: { type: 'tool', name: 'annoter_copie' },
+    messages: [
+      {
+        role: 'user',
+        content: [
+          ...(contenuSujet.length ? [{ type: 'text', text: 'Sujet de l\'évaluation :' }, ...contenuSujet] : []),
+          {
+            type: 'text',
+            text: `Évaluation : ${contexte.titre ?? 'non précisée'}${contexte.description ? `\nConsignes : ${contexte.description}` : ''}
+
+Correction déjà attribuée : ${resultat.noteGlobale}/${resultat.noteMax}${resultat.mention ? ` (${resultat.mention})` : ''}
+Appréciation : ${resultat.appreciationGenerale ?? ''}
+
+Copie de l'élève (texte extrait du fichier Word) :
+"""
+${texteCopie}
+"""
+
+Annote cette copie.`,
+          },
+        ],
+      },
+    ],
+  });
+
+  return extraireOutil(response);
+};

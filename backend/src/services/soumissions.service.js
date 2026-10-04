@@ -1,5 +1,8 @@
 import prisma from '../utils/prisma.js';
-import { corrigerDevoir } from './ia.service.js';
+import mammoth from 'mammoth';
+import { corrigerDevoir, annoterCopie } from './ia.service.js';
+import { annoterDocx, estDocx } from './copie-annotee.service.js';
+import { genererPdfCopiesCorrigees } from './copies-corrigees-pdf.service.js';
 import { creerNotification } from './notifications.service.js';
 
 // Convertit un score IA (ratio 0-1) en palier 1-4
@@ -166,4 +169,135 @@ export const corrigerSoumissionIA = async (soumissionId) => {
   }
 
   return { resultat, usage };
+};
+
+// ─── Export des copies corrigées (Word annoté + PDF fusionné) ─────────────────
+
+const SUJET_ANALYSABLE = (type) =>
+  type === 'application/pdf' || type?.includes('wordprocessingml');
+
+const chargerEvaluationExport = async (evaluationId) => {
+  const evaluation = await prisma.evaluation.findUnique({
+    where: { id: evaluationId },
+    select: {
+      id: true, titre: true, description: true, noteMax: true, datePassage: true,
+      sujetType: true, sujetData: true,
+      classe: { select: { nom: true } },
+      sequence: { select: { matiere: { select: { nom: true } } } },
+      createur: { select: { prenom: true, nom: true } },
+    },
+  });
+  if (!evaluation) throw erreur('Évaluation introuvable', 404);
+  return evaluation;
+};
+
+// Raison pour laquelle une copie ne peut pas être annotée (null si elle peut l'être)
+const raisonExclusion = (s) => {
+  if (!s.corrigeeIA || !s.resultatIA) return 'copie pas encore corrigée';
+  if (!estDocx(s.fichierType, s.fichierNom)) return 'format non pris en charge (seuls les fichiers .docx sont annotés)';
+  return null;
+};
+
+// Analyse détaillée de la copie (erreurs localisées), mise en cache dans resultatIA :
+// elle est invalidée automatiquement par un nouveau dépôt ou une nouvelle correction.
+const obtenirAnalyse = async (soumission, evaluation, { forcer = false } = {}) => {
+  if (!forcer && soumission.resultatIA.annotationsCopie) return soumission.resultatIA.annotationsCopie;
+
+  const { value: texteCopie } = await mammoth.extractRawText({ buffer: Buffer.from(soumission.fichierData) });
+  if (!texteCopie.trim()) throw erreur('La copie Word ne contient pas de texte à annoter', 422);
+
+  const sujet = evaluation.sujetData && SUJET_ANALYSABLE(evaluation.sujetType)
+    ? { buffer: Buffer.from(evaluation.sujetData), mimeType: evaluation.sujetType }
+    : null;
+  const { resultat } = await annoterCopie({
+    texteCopie,
+    sujet,
+    resultat: soumission.resultatIA,
+    contexte: { titre: evaluation.titre, description: evaluation.description },
+  });
+
+  const analyse = { ...resultat, genereeLe: new Date().toISOString() };
+  const { annotationsCopie: _ancienne, ...resultatIA } = soumission.resultatIA;
+  await prisma.soumission.update({
+    where: { id: soumission.id },
+    data: { resultatIA: { ...resultatIA, annotationsCopie: analyse } },
+  });
+  soumission.resultatIA = { ...resultatIA, annotationsCopie: analyse };
+  return analyse;
+};
+
+const chargerSoumissionExport = async (evaluationId, soumissionId) => {
+  const s = await prisma.soumission.findUnique({
+    where: { id: soumissionId },
+    include: { eleve: { select: { id: true, prenom: true, nom: true } } },
+  });
+  if (!s || s.evaluationId !== evaluationId) throw erreur('Soumission introuvable', 404);
+  const raison = raisonExclusion(s);
+  if (raison) throw erreur(`Impossible d'annoter cette copie : ${raison}`, 409);
+  return s;
+};
+
+const auteurAnnotations = (evaluation) =>
+  evaluation.createur ? `${evaluation.createur.prenom} ${evaluation.createur.nom}` : 'Enseignant';
+
+const annoterUneCopie = async (soumission, evaluation) => {
+  const analyse = await obtenirAnalyse(soumission, evaluation);
+  return annoterDocx(Buffer.from(soumission.fichierData), {
+    analyse,
+    resultat: soumission.resultatIA,
+    auteur: auteurAnnotations(evaluation),
+  });
+};
+
+// Prépare (ou régénère) l'analyse d'une copie — appelé copie par copie depuis l'interface
+export const analyserCopieIA = async (evaluationId, soumissionId, { forcer = false } = {}) => {
+  const [evaluation, soumission] = await Promise.all([
+    chargerEvaluationExport(evaluationId),
+    chargerSoumissionExport(evaluationId, soumissionId),
+  ]);
+  const analyse = await obtenirAnalyse(soumission, evaluation, { forcer });
+  const erreurs = (analyse.annotations ?? []).filter((a) => a.categorie !== 'correct').length;
+  return { soumissionId, erreurs, pointsCorrects: (analyse.annotations ?? []).length - erreurs };
+};
+
+// Copie Word annotée d'un élève
+export const genererCopieAnnotee = async (evaluationId, soumissionId) => {
+  const [evaluation, soumission] = await Promise.all([
+    chargerEvaluationExport(evaluationId),
+    chargerSoumissionExport(evaluationId, soumissionId),
+  ]);
+  const { buffer } = await annoterUneCopie(soumission, evaluation);
+  return { nom: soumission.fichierNom.replace(/\.docx$/i, '') + '_corrigé.docx', buffer };
+};
+
+// PDF unique : page de garde + toutes les copies annotées
+export const genererPdfCopies = async (evaluationId) => {
+  const evaluation = await chargerEvaluationExport(evaluationId);
+  const soumissions = await prisma.soumission.findMany({
+    where: { evaluationId },
+    include: { eleve: { select: { id: true, prenom: true, nom: true } } },
+  });
+  soumissions.sort((a, b) => `${a.eleve.nom} ${a.eleve.prenom}`.localeCompare(`${b.eleve.nom} ${b.eleve.prenom}`, 'fr'));
+
+  const copies = [];
+  const ignorees = [];
+  for (const s of soumissions) {
+    const raison = raisonExclusion(s);
+    if (raison) {
+      ignorees.push({ eleve: s.eleve, raison });
+      continue;
+    }
+    try {
+      const { modele } = await annoterUneCopie(s, evaluation);
+      copies.push({ eleve: s.eleve, resultat: s.resultatIA, fichierNom: s.fichierNom, modele });
+    } catch (err) {
+      ignorees.push({ eleve: s.eleve, raison: `annotation impossible (${err.message})` });
+    }
+  }
+  if (!copies.length) throw erreur('Aucune copie Word corrigée à exporter', 409);
+
+  return {
+    nom: `Copies corrigées - ${evaluation.titre}.pdf`,
+    buffer: await genererPdfCopiesCorrigees({ evaluation, copies, ignorees }),
+  };
 };
