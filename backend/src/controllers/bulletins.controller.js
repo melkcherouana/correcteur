@@ -1,9 +1,9 @@
 import {
   getDonneesBulletin,
   genererPdfBulletin,
-  genererPdfCertification,
   listerElevesAvecBulletin,
 } from '../services/bulletins.service.js';
+import { genererPdfCertification } from '../services/certification-pdf.service.js';
 
 export const listerEleves = async (req, res, next) => {
   try {

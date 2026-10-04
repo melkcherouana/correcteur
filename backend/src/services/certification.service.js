@@ -51,6 +51,117 @@ export const ajouterCodesCourts = (competences) => {
   return competences.map((c) => ({ ...c, codeCourt: codesCourts.get(c.id) }));
 };
 
+// ─── Compétences de la grille de synthèse ────────────────────────────────────
+// Requête commune à la grille et au PDF de profil de certification
+
+const chargerCompetencesGrille = async (matiereId) =>
+  ajouterCodesCourts(await prisma.competence.findMany({
+    where: matiereId ? { matiereId } : {},
+    include: {
+      matiere: { select: { id: true, code: true, nom: true } },
+      pole: { select: { id: true, code: true, titre: true, libelleCourt: true, ordre: true } },
+    },
+    orderBy: [{ matiereId: 'asc' }, { code: 'asc' }],
+  }));
+
+// ─── Libellé court et regroupement par pôle ──────────────────────────────────
+// Mêmes règles que la grille de synthèse (frontend/src/pages/Certification.jsx) :
+// 3 mots significatifs, 28 caractères max ; libelle_court enregistré en priorité.
+
+const MOTS_VIDES = new Set([
+  'le', 'la', 'les', 'l', 'de', 'du', 'des', 'd', 'à', 'au', 'aux', 'en', 'et', 'un', 'une', 'pour', 'sur', 'avec',
+  'pôle', 'pole', 'compétence', 'competence', 'bloc',
+]);
+const LONGUEUR_MAX_LIBELLE = 28;
+
+const tronquer = (texte, max = LONGUEUR_MAX_LIBELLE) =>
+  texte.length > max ? `${texte.slice(0, max - 1).trimEnd()}…` : texte;
+
+const genererLibelleCourt = (texte = '', nbMots = 3) => {
+  const mots = [];
+  for (const brut of texte.split(/[\s'’:;,.–—()/]+|\s-\s/)) {
+    const mot = brut.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '');
+    if (!mot || /\d/.test(brut) || MOTS_VIDES.has(mot.toLowerCase())) continue;
+    mots.push(mots.length ? mot : mot.charAt(0).toUpperCase() + mot.slice(1));
+    if (mots.length === nbMots) break;
+  }
+  return tronquer(mots.join(' '));
+};
+
+export const libelleCourt = (enregistre, complet) => tronquer(enregistre?.trim() || genererLibelleCourt(complet ?? ''));
+
+const triNaturel = (a = '', b = '') => a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' });
+
+/**
+ * Regroupe les compétences par pôle, dans l'ordre de la grille : numéro de pôle puis code.
+ * Pôle du référentiel s'il existe, sinon préfixe du code court (« C1.2 » → « C1 »).
+ * @returns {{ cle, libelle, court, titre, competences }[]} libelle = « P1 », court = libellé court du pôle
+ */
+export const grouperParPole = (competences) => {
+  const poles = new Map();
+  for (const c of competences) {
+    const code = c.pole?.code ?? extrairePole(c.codeCourt ?? c.code);
+    const n = Number(code.match(/\d+/)?.[0] ?? NaN);
+    const cle = c.pole?.id ?? `code:${code}`;
+    if (!poles.has(cle)) {
+      const libelle = Number.isFinite(n) ? `P${n}` : code;
+      poles.set(cle, {
+        cle,
+        libelle,
+        court: libelleCourt(c.pole?.libelleCourt, c.pole?.titre),
+        titre: c.pole?.titre || libelle,
+        ordre: Number.isFinite(n) ? n : (c.pole?.ordre ?? Infinity),
+        competences: [],
+      });
+    }
+    poles.get(cle).competences.push(c);
+  }
+  return [...poles.values()]
+    .sort((a, b) => a.ordre - b.ordre || triNaturel(a.libelle, b.libelle))
+    .map((p) => ({ ...p, competences: p.competences.sort((a, b) => triNaturel(a.codeCourt, b.codeCourt)) }));
+};
+
+// ─── Profil de certification d'un élève (données du PDF) ─────────────────────
+// Mêmes compétences, pôles, codes et niveaux que la grille de synthèse (toutes matières)
+
+export const profilCertificationEleve = async (eleveId) => {
+  const [eleve, competences, niveaux] = await Promise.all([
+    prisma.utilisateur.findUnique({
+      where: { id: eleveId },
+      select: { id: true, prenom: true, nom: true, classe: { select: { classe: { select: { id: true, nom: true } } } } },
+    }),
+    chargerCompetencesGrille(),
+    prisma.competenceEleve.findMany({ where: { eleveId }, select: { competenceId: true, niveau: true } }),
+  ]);
+  if (!eleve) throw Object.assign(new Error('Élève introuvable'), { status: 404 });
+  return construireProfil(eleve, competences, niveaux);
+};
+
+// Partie sans accès à la base : regroupement par pôle et décompte des acquis (A et D)
+export const construireProfil = (eleve, competences, niveaux) => {
+  const niveauxIndex = Object.fromEntries(niveaux.map((n) => [n.competenceId, n.niveau]));
+  const estAcquise = (c) => ['ACQUIS', 'DEPASSE'].includes(niveauxIndex[c.id]);
+  const poles = grouperParPole(competences).map((p) => ({
+    ...p,
+    competences: p.competences.map((c) => ({
+      id: c.id, code: c.codeCourt, description: c.description, niveau: niveauxIndex[c.id] ?? null,
+    })),
+    acquises: p.competences.filter(estAcquise).length,
+  }));
+  const acquises = competences.filter(estAcquise).length;
+
+  return {
+    // Pas de filière en base : le PDF n'affiche la ligne que si elle est renseignée
+    eleve: { prenom: eleve.prenom, nom: eleve.nom, classe: eleve.classe?.classe?.nom ?? null },
+    stats: {
+      acquises,
+      total: competences.length,
+      pourcentage: competences.length ? Math.round((acquises / competences.length) * 100) : 0,
+    },
+    poles,
+  };
+};
+
 // ─── Synthèse classe × compétences ───────────────────────────────────────────
 // Retourne : élèves, compétences, niveaux certif, paliers moyens par matière
 
@@ -61,14 +172,7 @@ export const syntheseClasse = async (classeId, matiereId) => {
       include: { eleve: { select: { id: true, prenom: true, nom: true } } },
       orderBy: { eleve: { nom: 'asc' } },
     }),
-    prisma.competence.findMany({
-      where: matiereId ? { matiereId } : {},
-      include: {
-        matiere: { select: { id: true, code: true, nom: true } },
-        pole: { select: { id: true, code: true, titre: true, libelleCourt: true, ordre: true } },
-      },
-      orderBy: [{ matiereId: 'asc' }, { code: 'asc' }],
-    }),
+    chargerCompetencesGrille(matiereId),
   ]);
 
   const eleveIds      = eleveRows.map((e) => e.eleveId);
@@ -127,7 +231,7 @@ export const syntheseClasse = async (classeId, matiereId) => {
 
   return {
     eleves:        eleveRows.map((e) => e.eleve),
-    competences:   ajouterCodesCourts(competences),
+    competences,
     niveaux:       niveauxIndex,
     paliersMoyens,
   };
