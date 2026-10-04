@@ -187,14 +187,17 @@ export const suggererNiveauxDepuisNotes = async (eleveId) => {
 // ─── Mise à jour en masse des niveaux ─────────────────────────────────────────
 
 export const appliquerNiveauxBulk = async (updates) => {
-  // updates : [{ eleveId, competenceId, niveau }]
+  // updates : [{ eleveId, competenceId, niveau }] — niveau null = retour à « non évalué »
+  // (la ligne est supprimée : l'absence de niveau signifie non évalué)
   const resultats = await Promise.all(
     updates.map(({ eleveId, competenceId, niveau }) =>
-      prisma.competenceEleve.upsert({
-        where:  { eleveId_competenceId: { eleveId, competenceId } },
-        create: { eleveId, competenceId, niveau },
-        update: { niveau },
-      })
+      niveau == null
+        ? prisma.competenceEleve.deleteMany({ where: { eleveId, competenceId } })
+        : prisma.competenceEleve.upsert({
+            where:  { eleveId_competenceId: { eleveId, competenceId } },
+            create: { eleveId, competenceId, niveau },
+            update: { niveau },
+          })
     )
   );
   return { appliques: resultats.length };

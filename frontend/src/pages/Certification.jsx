@@ -281,16 +281,22 @@ function CelluleNiveau({ niveau, eleveId, competenceId, onChange, readOnly }) {
       </span>
     );
   }
+  // Cycle : non évalué → NA → EC → A → D → non évalué
   const suivant = () => {
     const idx = NIVEAUX.indexOf(niveau);
-    const proch = idx === -1 ? 0 : (idx + 1) % NIVEAUX.length;
-    onChange(eleveId, competenceId, NIVEAUX[proch]);
+    onChange(eleveId, competenceId, idx === NIVEAUX.length - 1 ? null : NIVEAUX[idx + 1]);
+  };
+  // Clic droit : retour direct à « non évalué »
+  const reinitialiser = (e) => {
+    e.preventDefault();
+    if (niveau) onChange(eleveId, competenceId, null);
   };
   return (
     <button
       onClick={suivant}
-      title={`${c.label} — cliquer pour changer`}
-      className={`inline-flex items-center justify-center w-8 h-7 rounded text-[10px] font-bold transition-transform hover:scale-110 ${c.bg} ${c.text} ${niveau ? '' : 'border border-gray-200 dark:border-slate-600'}`}
+      onContextMenu={reinitialiser}
+      title={`${c.label} — clic : niveau suivant · clic droit : non évalué`}
+      className={`inline-flex items-center justify-center w-10 h-5 rounded text-[10px] font-bold transition-transform hover:scale-110 ${c.bg} ${c.text} ${niveau ? '' : 'border border-gray-200 dark:border-slate-600'}`}
     >
       {niveau ? c.court : ''}
     </button>
@@ -431,10 +437,11 @@ function OngletGrille() {
   // Première compétence de chaque pôle : bordure gauche marquée pour séparer les groupes
   const debutsPole = new Set(polesArr.map((p) => p.competences[0]?.id));
 
+  // Une modification locale à null (retour à « non évalué ») prime sur la valeur enregistrée
   const niveauEffectif = (eleveId, competenceId) =>
-    niveauxLocaux[eleveId]?.[competenceId]
-    ?? data?.niveaux?.[eleveId]?.[competenceId]
-    ?? null;
+    niveauxLocaux[eleveId] && competenceId in niveauxLocaux[eleveId]
+      ? niveauxLocaux[eleveId][competenceId]
+      : data?.niveaux?.[eleveId]?.[competenceId] ?? null;
 
   return (
     <div className="space-y-4">
@@ -507,7 +514,7 @@ function OngletGrille() {
                   <th
                     key={c.id}
                     title={c.description}
-                    style={{ width: 40, minWidth: 40, maxWidth: 40, height: 90, overflow: 'hidden' }}
+                    style={{ width: 48, minWidth: 48, maxWidth: 48, height: 90, overflow: 'hidden' }}
                     className={`px-0 py-1 align-bottom text-center font-mono font-bold cursor-help border-b border-gray-200 dark:border-slate-600 ${c.couleur.sous} ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
                   >
                     {/* Texte vertical isolé dans le span : le writing-mode ne s'applique qu'à lui */}
@@ -528,14 +535,14 @@ function OngletGrille() {
               {eleves.map((eleve) => (
                 <Fragment key={eleve.id}>
                   <tr className="hover:bg-gray-50/50 dark:hover:bg-slate-700/40">
-                    <td className="sticky left-0 z-10 bg-white dark:bg-slate-800 px-4 py-1.5 font-medium text-gray-900 dark:text-slate-100 whitespace-nowrap border-r border-gray-200 dark:border-slate-600">
+                    <td className="sticky left-0 z-10 bg-white dark:bg-slate-800 px-4 py-0.5 font-medium text-gray-900 dark:text-slate-100 whitespace-nowrap border-r border-gray-200 dark:border-slate-600">
                       {eleve.nom} {eleve.prenom}
                     </td>
-                    <td className="px-2 py-2 text-center">
+                    <td className="px-2 py-0.5 text-center">
                       <button
                         onClick={() => toggleSuggestions(eleve.id)}
                         title="Suggérer niveaux depuis les notes"
-                        className={`p-1 rounded-lg transition-colors ${lignesSug[eleve.id] ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300' : 'text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30'}`}
+                        className={`p-0.5 rounded-lg transition-colors ${lignesSug[eleve.id] ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300' : 'text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30'}`}
                       >
                         <Sparkles className="w-3.5 h-3.5" />
                       </button>
@@ -543,8 +550,8 @@ function OngletGrille() {
                     {competences.map((c) => (
                       <td
                         key={c.id}
-                        style={{ width: 40, minWidth: 40, maxWidth: 40, writingMode: 'horizontal-tb', overflow: 'hidden' }}
-                        className={`px-0 py-1 text-center ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
+                        style={{ width: 48, minWidth: 48, maxWidth: 48, writingMode: 'horizontal-tb', overflow: 'hidden' }}
+                        className={`px-0 py-0.5 text-center ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
                       >
                         <CelluleNiveau
                           niveau={niveauEffectif(eleve.id, c.id)}
@@ -586,7 +593,7 @@ function OngletGrille() {
           <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-white dark:bg-slate-800 text-gray-500 border border-gray-200 dark:border-slate-600">
             Vide — Non évalué
           </span>
-          <span className="text-xs text-gray-400 ml-2">Cliquer sur une cellule pour changer le niveau · survoler un code pour voir la compétence</span>
+          <span className="text-xs text-gray-400 ml-2">Clic sur une cellule : niveau suivant (jusqu'à revenir à non évalué) · clic droit : non évalué · survoler un code pour voir la compétence</span>
         </div>
         </div>
       )}
