@@ -259,7 +259,7 @@ const COULEURS_POLES = [
 
 // Dimensions de la grille (px) : tient à l'écran à 100 % en 1366x768 comme en 1920x1080
 const LARGEUR_COL = 40;
-const LARGEUR_ELEVE = 180;
+const LARGEUR_ELEVE = 140;
 const LARGEUR_IA = 36;
 const HAUTEUR_LIGNE_POLES = 28;
 const HAUTEUR_LIGNE_ELEVE = 28;
@@ -540,7 +540,7 @@ function OngletGrille() {
                 <th
                   rowSpan={2}
                   style={{ top: 0, left: 0, zIndex: Z_ANGLE, width: LARGEUR_ELEVE, minWidth: LARGEUR_ELEVE, maxWidth: LARGEUR_ELEVE }}
-                  className="sticky bg-gray-50 dark:bg-slate-700 text-left align-bottom px-4 py-2 font-semibold text-gray-600 dark:text-slate-300 border-b border-r border-gray-200 dark:border-slate-600"
+                  className="sticky bg-gray-50 dark:bg-slate-700 text-left align-bottom px-3 py-2 font-semibold text-gray-600 dark:text-slate-300 border-b border-r border-gray-200 dark:border-slate-600"
                 >
                   Élève
                 </th>
@@ -597,8 +597,9 @@ function OngletGrille() {
                 <Fragment key={eleve.id}>
                   <tr style={{ height: HAUTEUR_LIGNE_ELEVE }} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/40">
                     <td
+                      title={`${eleve.nom} ${eleve.prenom}`}
                       style={{ left: 0, zIndex: Z_COLONNES, width: LARGEUR_ELEVE, minWidth: LARGEUR_ELEVE, maxWidth: LARGEUR_ELEVE }}
-                      className="sticky bg-white dark:bg-slate-800 px-4 py-0 text-[11px] leading-tight font-medium text-gray-900 dark:text-slate-100 whitespace-nowrap overflow-hidden text-ellipsis border-b border-b-gray-100 dark:border-b-slate-700 border-r border-gray-200 dark:border-slate-600"
+                      className="sticky bg-white dark:bg-slate-800 px-3 py-0 text-[11px] leading-tight font-medium text-gray-900 dark:text-slate-100 whitespace-nowrap overflow-hidden text-ellipsis border-b border-b-gray-100 dark:border-b-slate-700 border-r border-gray-200 dark:border-slate-600"
                     >
                       {eleve.nom} {eleve.prenom}
                     </td>
