@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, Fragment } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -16,12 +16,12 @@ import Spinner from '../components/ui/Spinner.jsx';
 
 const NIVEAUX = ['NON_ACQUIS', 'EN_COURS', 'ACQUIS', 'DEPASSE'];
 const NIVEAU_CFG = {
-  NON_ACQUIS: { label: 'Non acquis', court: 'NA', bg: 'bg-red-100 dark:bg-red-900/40',       text: 'text-red-700 dark:text-red-300',       score: 0   },
-  EN_COURS:   { label: 'En cours',   court: 'EC', bg: 'bg-orange-100 dark:bg-orange-900/40', text: 'text-orange-700 dark:text-orange-300', score: 33  },
-  ACQUIS:     { label: 'Acquis',     court: 'A',  bg: 'bg-green-100 dark:bg-green-900/40',   text: 'text-green-700 dark:text-green-300',   score: 66  },
-  DEPASSE:    { label: 'Dépassé',    court: 'D',  bg: 'bg-violet-100 dark:bg-violet-900/40', text: 'text-violet-700 dark:text-violet-300', score: 100 },
+  NON_ACQUIS: { label: 'Non acquis', court: 'NA', bg: 'bg-red-200 dark:bg-red-900/60',       text: 'text-red-800 dark:text-red-200',       score: 0   },
+  EN_COURS:   { label: 'En cours',   court: 'EC', bg: 'bg-orange-200 dark:bg-orange-900/60', text: 'text-orange-800 dark:text-orange-200', score: 33  },
+  ACQUIS:     { label: 'Acquis',     court: 'A',  bg: 'bg-yellow-200 dark:bg-yellow-900/60', text: 'text-yellow-800 dark:text-yellow-200', score: 66  },
+  DEPASSE:    { label: 'Dépassé',    court: 'D',  bg: 'bg-green-200 dark:bg-green-900/60',   text: 'text-green-800 dark:text-green-200',   score: 100 },
 };
-const NON_EVALUE = { label: 'Non évalué', court: '—', bg: 'bg-gray-100 dark:bg-slate-700', text: 'text-gray-400 dark:text-slate-400', score: 0 };
+const NON_EVALUE = { label: 'Non évalué', court: '—', bg: 'bg-white dark:bg-slate-800', text: 'text-gray-300 dark:text-slate-500', score: 0 };
 
 const cfg  = (niveau) => NIVEAU_CFG[niveau] ?? NON_EVALUE;
 const pole = (code)   => code?.split('.')[0] ?? code;
@@ -247,6 +247,32 @@ function OngletRadar({ estEleve, monId }) {
 
 // ─── Onglet 2 : Grille de synthèse ───────────────────────────────────────────
 
+// Couleurs des en-têtes de pôle (fond du groupe + fond léger des sous-colonnes), en boucle
+const COULEURS_POLES = [
+  { entete: 'bg-indigo-600 text-white',  sous: 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' },
+  { entete: 'bg-sky-600 text-white',     sous: 'bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300' },
+  { entete: 'bg-emerald-600 text-white', sous: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' },
+  { entete: 'bg-amber-600 text-white',   sous: 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
+  { entete: 'bg-rose-600 text-white',    sous: 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300' },
+  { entete: 'bg-violet-600 text-white',  sous: 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300' },
+];
+
+const triNaturel = (a = '', b = '') => a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' });
+const numero = (texte) => Number(texte?.match(/\d+/)?.[0] ?? Infinity);
+const tronquer = (texte = '', max = 20) => (texte.length > max ? `${texte.slice(0, max - 1)}…` : texte);
+
+// Pôle d'une compétence : celui du référentiel s'il existe, sinon le préfixe du code (« C1.2 » → « C1 »)
+const poleDe = (c) => {
+  const code = c.pole?.code ?? pole(c.code);
+  const n = numero(code);
+  return {
+    cle: c.pole?.id ?? `code:${code}`,
+    libelle: Number.isFinite(n) ? `P${n}` : code,
+    titre: c.pole?.titre ?? `Pôle ${code}`,
+    ordre: Number.isFinite(n) ? n : (c.pole?.ordre ?? Infinity),
+  };
+};
+
 function CelluleNiveau({ niveau, eleveId, competenceId, onChange, readOnly }) {
   const c = cfg(niveau);
   if (readOnly) {
@@ -265,9 +291,9 @@ function CelluleNiveau({ niveau, eleveId, competenceId, onChange, readOnly }) {
     <button
       onClick={suivant}
       title={`${c.label} — cliquer pour changer`}
-      className={`inline-flex items-center justify-center w-10 h-6 rounded text-xs font-bold transition-transform hover:scale-110 ${c.bg} ${c.text}`}
+      className={`inline-flex items-center justify-center w-8 h-7 rounded text-[10px] font-bold transition-transform hover:scale-110 ${c.bg} ${c.text} ${niveau ? '' : 'border border-gray-200 dark:border-slate-600'}`}
     >
-      {c.court}
+      {niveau ? c.court : ''}
     </button>
   );
 }
@@ -385,16 +411,26 @@ function OngletGrille() {
   const toggleSuggestions = (eleveId) =>
     setLignesSug((p) => ({ ...p, [eleveId]: !p[eleveId] }));
 
-  const eleves      = data?.eleves      ?? [];
-  const competences = data?.competences ?? [];
+  // Lignes triées par nom puis prénom
+  const eleves = [...(data?.eleves ?? [])].sort((a, b) => triNaturel(a.nom, b.nom) || triNaturel(a.prenom, b.prenom));
 
-  // Grouper les compétences par pôle pour l'en-tête du tableau
-  const polesMap = {};
-  for (const c of competences) {
-    const p = pole(c.code);
-    (polesMap[p] ??= []).push(c);
+  // Colonnes groupées par pôle, triées par numéro de pôle puis par code de compétence (C1.2 < C1.10)
+  const polesMap = new Map();
+  for (const c of data?.competences ?? []) {
+    const p = poleDe(c);
+    if (!polesMap.has(p.cle)) polesMap.set(p.cle, { ...p, competences: [] });
+    polesMap.get(p.cle).competences.push(c);
   }
-  const polesArr = Object.entries(polesMap);
+  const polesArr = [...polesMap.values()]
+    .sort((a, b) => a.ordre - b.ordre || triNaturel(a.libelle, b.libelle))
+    .map((p, i) => ({
+      ...p,
+      couleur: COULEURS_POLES[i % COULEURS_POLES.length],
+      competences: p.competences.sort((a, b) => triNaturel(a.code, b.code)),
+    }));
+  const competences = polesArr.flatMap((p) => p.competences.map((c) => ({ ...c, couleur: p.couleur })));
+  // Première compétence de chaque pôle : bordure gauche marquée pour séparer les groupes
+  const debutsPole = new Set(polesArr.map((p) => p.competences[0]?.id));
 
   const niveauEffectif = (eleveId, competenceId) =>
     niveauxLocaux[eleveId]?.[competenceId]
@@ -429,20 +465,6 @@ function OngletGrille() {
         </div>
       </Card>
 
-      {/* Légende */}
-      <div className="flex flex-wrap gap-2">
-        {NIVEAUX.map((n) => {
-          const c = cfg(n);
-          return (
-            <span key={n} className={`text-xs px-2.5 py-1 rounded-full font-semibold ${c.bg} ${c.text}`}>
-              {c.court} — {c.label}
-            </span>
-          );
-        })}
-        <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-gray-100 text-gray-400">— Non évalué</span>
-        <span className="text-xs text-gray-400 ml-2 self-center">Cliquer sur une cellule pour changer le niveau</span>
-      </div>
-
       {!classeId && (
         <div className="text-center py-16 text-gray-400">Sélectionnez une classe pour afficher la grille.</div>
       )}
@@ -456,45 +478,49 @@ function OngletGrille() {
       )}
 
       {classeId && !isLoading && competences.length > 0 && (
-        <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
-          <table className="text-xs min-w-max">
+        <div className="space-y-3">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800">
+          <table className="text-xs min-w-max border-collapse">
             <thead>
-              {/* Ligne pôles */}
-              <tr className="bg-indigo-50 dark:bg-indigo-900/30 border-b border-indigo-100 dark:border-indigo-800">
-                <th className="sticky left-0 z-10 bg-indigo-50 dark:bg-indigo-900/30 text-left px-4 py-2 font-semibold text-gray-600 min-w-[160px]">
+              {/* Ligne pôles : un en-tête coloré sur toute la largeur du pôle */}
+              <tr>
+                <th
+                  rowSpan={2}
+                  className="sticky left-0 z-20 bg-gray-50 dark:bg-slate-700 text-left align-bottom px-4 py-2 font-semibold text-gray-600 dark:text-slate-300 min-w-[180px] border-b border-r border-gray-200 dark:border-slate-600"
+                >
                   Élève
                 </th>
-                <th className="px-2 py-2 text-gray-400 font-medium whitespace-nowrap">IA</th>
-                {polesArr.map(([p, comps]) => (
+                <th rowSpan={2} className="px-2 py-2 align-bottom text-gray-400 font-medium whitespace-nowrap border-b border-gray-200 dark:border-slate-600">IA</th>
+                {polesArr.map((p) => (
                   <th
-                    key={p}
-                    colSpan={comps.length}
-                    className="px-2 py-2 font-bold text-indigo-700 dark:text-indigo-300 text-center border-l border-indigo-200 dark:border-indigo-800"
+                    key={p.cle}
+                    colSpan={p.competences.length}
+                    title={p.titre}
+                    className={`px-1 py-1.5 font-bold text-center border-l-2 border-white dark:border-slate-800 ${p.couleur.entete}`}
                   >
-                    Pôle {p} <span className="font-normal text-gray-400">({comps.length})</span>
+                    {p.libelle}
                   </th>
                 ))}
               </tr>
-              {/* Ligne compétences */}
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="sticky left-0 z-10 bg-gray-50" />
-                <th />
+              {/* Ligne compétences : code court en vertical, libellé en info-bulle */}
+              <tr>
                 {competences.map((c) => (
                   <th
                     key={c.id}
-                    title={c.description}
-                    className="px-2 py-2 font-mono text-indigo-600 dark:text-indigo-400 font-bold text-center whitespace-nowrap border-l border-gray-100"
+                    title={tronquer(c.description)}
+                    style={{ writingMode: 'vertical-rl', width: 40, minWidth: 40, maxWidth: 40 }}
+                    className={`h-16 px-0 py-2 font-mono font-bold whitespace-nowrap cursor-help border-b border-gray-200 dark:border-slate-600 ${c.couleur.sous} ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
                   >
                     {c.code}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {eleves.map((eleve) => (
-                <>
-                  <tr key={eleve.id} className="hover:bg-gray-50/50">
-                    <td className="sticky left-0 z-10 bg-white px-4 py-2 font-medium text-gray-900 whitespace-nowrap">
+                <Fragment key={eleve.id}>
+                  <tr className="hover:bg-gray-50/50 dark:hover:bg-slate-700/40">
+                    <td className="sticky left-0 z-10 bg-white dark:bg-slate-800 px-4 py-1.5 font-medium text-gray-900 dark:text-slate-100 whitespace-nowrap border-r border-gray-200 dark:border-slate-600">
                       {eleve.nom} {eleve.prenom}
                     </td>
                     <td className="px-2 py-2 text-center">
@@ -507,7 +533,11 @@ function OngletGrille() {
                       </button>
                     </td>
                     {competences.map((c) => (
-                      <td key={c.id} className="px-2 py-2 text-center border-l border-gray-50">
+                      <td
+                        key={c.id}
+                        style={{ width: 40, minWidth: 40, maxWidth: 40 }}
+                        className={`px-0 py-1 text-center ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
+                      >
                         <CelluleNiveau
                           niveau={niveauEffectif(eleve.id, c.id)}
                           eleveId={eleve.id}
@@ -529,10 +559,27 @@ function OngletGrille() {
                       />
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Légende des niveaux, sous le tableau */}
+        <div className="flex flex-wrap items-center gap-2">
+          {NIVEAUX.map((n) => {
+            const c = cfg(n);
+            return (
+              <span key={n} className={`text-xs px-2.5 py-1 rounded-full font-semibold ${c.bg} ${c.text}`}>
+                {c.court} — {c.label}
+              </span>
+            );
+          })}
+          <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-white dark:bg-slate-800 text-gray-500 border border-gray-200 dark:border-slate-600">
+            Vide — Non évalué
+          </span>
+          <span className="text-xs text-gray-400 ml-2">Cliquer sur une cellule pour changer le niveau · survoler un code pour voir la compétence</span>
+        </div>
         </div>
       )}
     </div>

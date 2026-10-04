@@ -16,7 +16,10 @@ export const syntheseClasse = async (classeId, matiereId) => {
     }),
     prisma.competence.findMany({
       where: matiereId ? { matiereId } : {},
-      include: { matiere: { select: { id: true, code: true, nom: true } } },
+      include: {
+        matiere: { select: { id: true, code: true, nom: true } },
+        pole: { select: { id: true, code: true, titre: true, ordre: true } },
+      },
       orderBy: [{ matiereId: 'asc' }, { code: 'asc' }],
     }),
   ]);
