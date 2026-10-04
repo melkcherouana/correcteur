@@ -1,10 +1,12 @@
 import PDFDocument from 'pdfkit';
+import { PDFDocument as PdfLib, StandardFonts, rgb } from 'pdf-lib';
 import { LIBELLES_CATEGORIES } from './copie-annotee.service.js';
 
-// PDF unique regroupant toutes les copies annotées : page de garde puis, pour
-// chaque élève, le texte de sa copie avec les mêmes annotations que le Word
-// (surlignage rouge/vert, texte barré, renvois numérotés) et le bilan de correction.
-// pdfkit ne sait pas convertir un .docx : le texte est donc remis en page ici.
+// PDF unique regroupant toutes les copies annotées : page de garde (pdfkit) puis,
+// pour chaque élève, sa copie Word annotée convertie fidèlement par LibreOffice.
+// Copie sans conversion disponible (LibreOffice absent ou en échec) : le texte est
+// remis en page ici avec les mêmes annotations (surlignage rouge/vert, texte barré,
+// renvois numérotés) et le bilan de correction. Les morceaux sont fusionnés avec pdf-lib.
 
 const MARGE = 50;
 const BLEU = '#3730a3';
@@ -247,26 +249,75 @@ const pageCopie = (doc, { eleve, resultat, fichierNom, modele }) => {
 
 // ─── Point d'entrée ───────────────────────────────────────────────────────────
 
-export const genererPdfCopiesCorrigees = ({ evaluation, copies, ignorees }) =>
+// Document pdfkit : page de garde puis remise en page des copies sans PDF LibreOffice.
+// Retourne aussi la plage de pages de chaque copie remise en page, pour la fusion.
+const genererPagesPdfkit = ({ evaluation, copies, ignorees, aRemettreEnPage }) =>
   new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: MARGE, size: 'A4', bufferPages: true, info: { Title: `Copies corrigées — ${evaluation.titre}` } });
+    const doc = new PDFDocument({ margin: MARGE, size: 'A4', bufferPages: true });
     const buffers = [];
+    const plages = new Map();
     doc.on('data', (b) => buffers.push(b));
-    doc.on('end', () => resolve(Buffer.concat(buffers)));
+    doc.on('end', () => resolve({ buffer: Buffer.concat(buffers), plages }));
     doc.on('error', reject);
 
     pageDeGarde(doc, { evaluation, copies, ignorees });
-    copies.forEach((c) => pageCopie(doc, c));
-
-    // Pagination (la marge basse est neutralisée le temps d'écrire le pied de page)
-    const { start, count } = doc.bufferedPageRange();
-    for (let i = start; i < start + count; i++) {
-      doc.switchToPage(i);
-      const margeBasse = doc.page.margins.bottom;
-      doc.page.margins.bottom = 0;
-      doc.font('Helvetica').fontSize(8).fillColor(GRIS)
-        .text(`${nettoyer(evaluation.titre)} — page ${i + 1}/${count}`, MARGE, doc.page.height - 30, { width: doc.page.width - 2 * MARGE, align: 'center', lineBreak: false });
-      doc.page.margins.bottom = margeBasse;
+    plages.set('garde', { debut: 0, fin: doc.bufferedPageRange().count });
+    for (const c of aRemettreEnPage) {
+      const debut = doc.bufferedPageRange().count;
+      pageCopie(doc, c);
+      plages.set(c, { debut, fin: doc.bufferedPageRange().count });
     }
     doc.end();
   });
+
+const intervalle = ({ debut, fin }) => Array.from({ length: fin - debut }, (_, i) => debut + i);
+
+/**
+ * @param {object[]} copies — { eleve, resultat, fichierNom, modele, pdf? } ; `pdf` est la copie
+ *   Word annotée convertie par LibreOffice, à défaut le texte est remis en page avec pdfkit.
+ */
+export const genererPdfCopiesCorrigees = async ({ evaluation, copies, ignorees }) => {
+  // PDF LibreOffice lisibles ; les autres copies sont remises en page par pdfkit
+  const pdfsCopies = new Map();
+  for (const c of copies.filter((c) => c.pdf)) {
+    try {
+      pdfsCopies.set(c, await PdfLib.load(c.pdf));
+    } catch {
+      // PDF corrompu : repli sur la remise en page
+    }
+  }
+  const kit = await genererPagesPdfkit({
+    evaluation, copies, ignorees, aRemettreEnPage: copies.filter((c) => !pdfsCopies.has(c)),
+  });
+  const source = await PdfLib.load(kit.buffer);
+  const final = await PdfLib.create();
+  final.setTitle(nettoyer(`Copies corrigées — ${evaluation.titre}`));
+  final.setCreator('EvalPro');
+
+  const ajouter = async (doc, indices, eleve = null) => {
+    const pages = await final.copyPages(doc, indices);
+    pages.forEach((p) => final.addPage(p));
+    return pages.map((page) => ({ page, eleve }));
+  };
+
+  // Ordre conservé : page de garde puis copies triées par élève
+  const pages = await ajouter(source, intervalle(kit.plages.get('garde')));
+  for (const c of copies) {
+    const pdfCopie = pdfsCopies.get(c);
+    pages.push(...(pdfCopie
+      ? await ajouter(pdfCopie, pdfCopie.getPageIndices(), c.eleve)
+      : await ajouter(source, intervalle(kit.plages.get(c)), c.eleve)));
+  }
+
+  // Pied de page commun (élève + pagination), dans la marge basse de chaque page
+  const police = await final.embedFont(StandardFonts.Helvetica);
+  const gris = rgb(0x64 / 255, 0x74 / 255, 0x8b / 255);
+  pages.forEach(({ page, eleve }, i) => {
+    const texte = nettoyer(`${evaluation.titre}${eleve ? ` — ${nomEleve(eleve)}` : ''} — page ${i + 1}/${pages.length}`);
+    const { width } = page.getSize();
+    const largeur = police.widthOfTextAtSize(texte, 7.5);
+    page.drawText(texte, { x: (width - largeur) / 2, y: 14, size: 7.5, font: police, color: gris });
+  });
+
+  return Buffer.from(await final.save());
+};

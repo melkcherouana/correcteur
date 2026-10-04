@@ -3,6 +3,7 @@ import mammoth from 'mammoth';
 import { corrigerDevoir, annoterCopie } from './ia.service.js';
 import { annoterDocx, estDocx } from './copie-annotee.service.js';
 import { genererPdfCopiesCorrigees } from './copies-corrigees-pdf.service.js';
+import { convertirDocxEnPdf, trouverLibreOffice } from './conversion-pdf.service.js';
 import { creerNotification } from './notifications.service.js';
 
 // Convertit un score IA (ratio 0-1) en palier 1-4
@@ -288,13 +289,24 @@ export const genererPdfCopies = async (evaluationId) => {
       continue;
     }
     try {
-      const { modele } = await annoterUneCopie(s, evaluation);
-      copies.push({ eleve: s.eleve, resultat: s.resultatIA, fichierNom: s.fichierNom, modele });
+      const { buffer, modele } = await annoterUneCopie(s, evaluation);
+      copies.push({ eleve: s.eleve, resultat: s.resultatIA, fichierNom: s.fichierNom, modele, docx: buffer });
     } catch (err) {
       ignorees.push({ eleve: s.eleve, raison: `annotation impossible (${err.message})` });
     }
   }
   if (!copies.length) throw erreur('Aucune copie Word corrigée à exporter', 409);
+
+  // Conversion fidèle des Word annotés par LibreOffice (en un seul lancement) ;
+  // sans LibreOffice ou en cas d'échec, le PDF remet le texte en page lui-même
+  if (trouverLibreOffice()) {
+    try {
+      const pdfs = await convertirDocxEnPdf(copies.map((c) => c.docx));
+      copies.forEach((c, i) => { c.pdf = pdfs[i]; });
+    } catch (err) {
+      console.error('[copies corrigées] conversion LibreOffice impossible :', err.message);
+    }
+  }
 
   return {
     nom: `Copies corrigées - ${evaluation.titre}.pdf`,
