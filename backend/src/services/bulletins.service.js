@@ -2,21 +2,11 @@ import prisma from '../utils/prisma.js';
 import { obtenirPortfolio } from './portfolio.service.js';
 import { genererCommentaireBulletin } from './ia.service.js';
 import { obtenirAnneeActive, bornesTrimestre } from './annees.service.js';
-import PDFDocument from 'pdfkit';
-
-const NIVEAU_LABEL = {
-  NON_ACQUIS: 'Non acquis',
-  EN_COURS: 'En cours',
-  ACQUIS: 'Acquis',
-  DEPASSE: 'Dépassé',
-};
-
-const NIVEAU_SYMBOLE = {
-  NON_ACQUIS: '✗',
-  EN_COURS: '◑',
-  ACQUIS: '✓',
-  DEPASSE: '★',
-};
+import { profilCertificationEleve } from './certification.service.js';
+import {
+  creerDocument, bandeauTitre, blocEleve, titreSection, paragraphe, tableauxParPole, legendeNiveaux,
+  nettoyer, BLEU, GRIS, NOIR, FILET,
+} from '../utils/pdf-mise-en-page.js';
 
 // ─── Données bulletin ─────────────────────────────────────────────────────────
 
@@ -65,192 +55,109 @@ export const getDonneesBulletin = async (eleveId, { trimestre = 1, avecCommentai
 // ─── Génération PDF ───────────────────────────────────────────────────────────
 
 export const genererPdfBulletin = async (eleveId, trimestre = 1) => {
-  const donnees = await getDonneesBulletin(eleveId, { trimestre, avecCommentaireIA: true });
-  const { eleve, stats, moyennesParMatiere, competencesParMatiere, commentaireIA, periodeFiltre } = donnees;
-
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: 'A4' });
-    const buffers = [];
-    doc.on('data', (b) => buffers.push(b));
-    doc.on('end', () => resolve(Buffer.concat(buffers)));
-    doc.on('error', reject);
-
-    const bleu = '#3730a3';
-    const gris = '#64748b';
-    const noirLeche = '#1e293b';
-
-    // En-tête
-    doc
-      .rect(50, 50, 495, 60)
-      .fillColor('#eef2ff')
-      .fill();
-    doc
-      .fillColor(bleu)
-      .fontSize(18)
-      .font('Helvetica-Bold')
-      .text('EvalPro', 65, 65)
-      .fontSize(10)
-      .font('Helvetica')
-      .fillColor(gris)
-      .text('Lycée professionnel', 65, 86);
-
-    doc
-      .fillColor(noirLeche)
-      .fontSize(14)
-      .font('Helvetica-Bold')
-      .text(`Bulletin de compétences — Trimestre ${trimestre}`, 200, 68, { align: 'right', width: 330 });
-
-    if (periodeFiltre) {
-      const fmt = (d) => new Date(d).toLocaleDateString('fr-FR');
-      doc
-        .fontSize(8)
-        .font('Helvetica')
-        .fillColor(gris)
-        .text(`Du ${fmt(periodeFiltre.debut)} au ${fmt(periodeFiltre.fin)}`, 200, 86, { align: 'right', width: 330 });
-    }
-
-    doc.moveDown(3);
-
-    // Infos élève
-    doc.rect(50, doc.y, 495, 70).fillColor('#f8fafc').fill();
-    const yEleve = doc.y + 10;
-    doc
-      .fillColor(noirLeche)
-      .fontSize(14)
-      .font('Helvetica-Bold')
-      .text(`${eleve.prenom} ${eleve.nom}`, 65, yEleve);
-    doc
-      .fontSize(10)
-      .font('Helvetica')
-      .fillColor(gris)
-      .text(`Classe : ${eleve.classe?.nom ?? 'Non renseignée'}`, 65, yEleve + 20)
-      .text(`Filière : ${eleve.filiere?.nom ?? 'Non renseignée'}`, 65, yEleve + 33);
-    doc.moveDown(4.5);
-
-    // Progression
-    const pct = stats.pourcentage;
-    doc
-      .fillColor(bleu)
-      .fontSize(11)
-      .font('Helvetica-Bold')
-      .text('Progression vers le diplôme', { underline: false });
-    doc
-      .fontSize(10)
-      .font('Helvetica')
-      .fillColor(gris)
-      .text(
-        `${pct} % — ${stats.acquises} compétences acquises sur ${stats.total} (${stats.enCours} en cours, ${stats.nonAcquises} non acquises)`,
-        { lineGap: 2 }
-      );
-
-    // Barre de progression
-    const barY = doc.y + 4;
-    doc.rect(50, barY, 495, 10).fillColor('#e2e8f0').fill();
-    doc.rect(50, barY, (495 * pct) / 100, 10).fillColor(bleu).fill();
-    doc.moveDown(2.5);
-
-    // Moyennes par matière
-    if (moyennesParMatiere.length > 0) {
-      doc.fillColor(bleu).fontSize(11).font('Helvetica-Bold').text('Moyennes par matière');
-      doc.moveDown(0.4);
-
-      const colX = [50, 310, 400, 480];
-      doc
-        .fontSize(9)
-        .font('Helvetica-Bold')
-        .fillColor(gris)
-        .text('Matière', colX[0], doc.y)
-        .text('Moyenne /20', colX[1], doc.y - doc.currentLineHeight())
-        .text('Nb notes', colX[2], doc.y - doc.currentLineHeight());
-      doc.moveDown(0.3);
-      doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#e2e8f0').stroke();
-      doc.moveDown(0.3);
-
-      for (const m of moyennesParMatiere) {
-        const y = doc.y;
-        doc
-          .fontSize(9)
-          .font('Helvetica')
-          .fillColor(noirLeche)
-          .text(m.matiere.nom, colX[0], y, { width: 250 })
-          .text(m.moyenne !== null ? `${m.moyenne}/20` : 'N/A', colX[1], y)
-          .text(String(m.nombreNotes), colX[2], y);
-        doc.moveDown(0.5);
-      }
-      doc.moveDown(0.5);
-    }
-
-    // Compétences par matière
-    if (competencesParMatiere.length > 0) {
-      doc.fillColor(bleu).fontSize(11).font('Helvetica-Bold').text('Compétences par matière');
-      doc.moveDown(0.4);
-
-      for (const pm of competencesParMatiere) {
-        if (doc.y > 700) doc.addPage();
-
-        doc
-          .fontSize(10)
-          .font('Helvetica-Bold')
-          .fillColor(noirLeche)
-          .text(`▸ ${pm.matiere.nom} (${pm.competences.length} compétences)`);
-        doc.moveDown(0.3);
-
-        for (const ce of pm.competences) {
-          const symbole = NIVEAU_SYMBOLE[ce.niveau] ?? '?';
-          const label = NIVEAU_LABEL[ce.niveau] ?? ce.niveau;
-          doc
-            .fontSize(9)
-            .font('Helvetica')
-            .fillColor(gris)
-            .text(
-              `  ${symbole} [${ce.competence.code}] ${ce.competence.description} — ${label}`,
-              { width: 480, lineGap: 1 }
-            );
-        }
-        doc.moveDown(0.5);
-      }
-    }
-
-    // Commentaire IA
-    if (commentaireIA?.commentaire) {
-      if (doc.y > 650) doc.addPage();
-      doc.moveDown(0.5);
-      doc.rect(50, doc.y, 495, 10).fillColor('#eef2ff').fill();
-      doc.moveDown(0.8);
-      doc.fillColor(bleu).fontSize(11).font('Helvetica-Bold').text('Appréciation générale');
-      doc.moveDown(0.4);
-      doc
-        .fontSize(10)
-        .font('Helvetica-Oblique')
-        .fillColor(noirLeche)
-        .text(commentaireIA.commentaire, { width: 480, lineGap: 3 });
-
-      if (commentaireIA.objectifProchainTrimestre) {
-        doc.moveDown(0.5);
-        doc
-          .fontSize(9)
-          .font('Helvetica-Bold')
-          .fillColor(bleu)
-          .text('Objectif prochain trimestre : ', { continued: true })
-          .font('Helvetica')
-          .fillColor(noirLeche)
-          .text(commentaireIA.objectifProchainTrimestre, { width: 480 });
-      }
-    }
-
-    // Pied de page
-    doc
-      .fontSize(8)
-      .font('Helvetica')
-      .fillColor(gris)
-      .text(
-        `Document généré par EvalPro le ${new Date().toLocaleDateString('fr-FR')}`,
-        50, 780,
-        { align: 'center', width: 495 }
-      );
-
-    doc.end();
+  const [donnees, profil] = await Promise.all([
+    getDonneesBulletin(eleveId, { trimestre, avecCommentaireIA: true }),
+    profilCertificationEleve(eleveId),
+  ]);
+  return dessinerPdfBulletin({
+    trimestre,
+    periode: donnees.periodeFiltre,
+    moyennes: donnees.moyennesParMatiere,
+    commentaire: donnees.commentaireIA,
+    profil,
   });
+};
+
+// Dessin du bulletin : moyennes du trimestre, compétences par pôle (mêmes données que la
+// grille de synthèse et le profil de certification), appréciation générale
+export const dessinerPdfBulletin = ({ trimestre, periode, moyennes, commentaire, profil }) => {
+  const { eleve, stats, poles } = profil;
+  const ctx = creerDocument({ titre: `Bulletin T${trimestre}`, piedDePage: `EvalPro — Bulletin de compétences T${trimestre}` });
+  const { doc, X, L } = ctx;
+  const fmt = (d) => new Date(d).toLocaleDateString('fr-FR');
+
+  bandeauTitre(ctx, {
+    titre: `BULLETIN DE COMPÉTENCES — TRIMESTRE ${trimestre}`,
+    sousTitreDroite: periode ? `Du ${fmt(periode.debut)} au ${fmt(periode.fin)}` : `Généré le ${fmt(new Date())}`,
+  });
+
+  // Décompte des niveaux sur toutes les compétences du référentiel
+  const niveaux = poles.flatMap((p) => p.competences.map((c) => c.niveau));
+  const enCours = niveaux.filter((n) => n === 'EN_COURS').length;
+  const nonAcquises = niveaux.filter((n) => n === 'NON_ACQUIS').length;
+  blocEleve(ctx, {
+    nom: `${eleve.prenom} ${eleve.nom}`,
+    lignes: [
+      eleve.classe && `Classe : ${eleve.classe}`,
+      eleve.filiere && `Filière : ${eleve.filiere}`,
+      `Compétences : ${stats.acquises} acquises / ${stats.total} au total (${enCours} en cours, ${nonAcquises} non acquises)`,
+    ],
+    pourcentage: stats.pourcentage,
+  });
+
+  // ─── Moyennes par matière (notes du trimestre) ──────────────────────────
+  titreSection(ctx, 'Moyennes du trimestre par matière');
+  if (!moyennes.length) {
+    doc.font('Helvetica').fontSize(9).fillColor(GRIS).text('Aucune note sur la période.', X, ctx.y, { width: L });
+    ctx.y += 22;
+  } else {
+    const COL_MOYENNE = 90;
+    const COL_NOTES = 70;
+    const largeurMatiere = L - COL_MOYENNE - COL_NOTES;
+    const xMoyenne = X + largeurMatiere;
+    const xNotes = xMoyenne + COL_MOYENNE;
+    const entete = () => {
+      doc.rect(X, ctx.y, L, 16).fillColor('#f1f5f9').fill();
+      doc.font('Helvetica-Bold').fontSize(7.5).fillColor(GRIS)
+        .text('Matière', X + 5, ctx.y + 5, { width: largeurMatiere - 10, lineBreak: false })
+        .text('Moyenne /20', xMoyenne, ctx.y + 5, { width: COL_MOYENNE, align: 'center', lineBreak: false })
+        .text('Notes', xNotes, ctx.y + 5, { width: COL_NOTES, align: 'center', lineBreak: false });
+      ctx.y += 16;
+    };
+    entete();
+    moyennes.forEach((m, j) => {
+      doc.font('Helvetica').fontSize(9);
+      const hTexte = doc.heightOfString(nettoyer(m.matiere.nom), { width: largeurMatiere - 10 });
+      const h = hTexte + 10;
+      if (ctx.y + h > ctx.limiteBas()) {
+        ctx.nouvellePage();
+        entete();
+      }
+      const y = ctx.y;
+      if (j % 2 === 1) doc.rect(X, y, L, h).fillColor('#fafafa').fill();
+      doc.font('Helvetica').fontSize(9).fillColor(NOIR)
+        .text(nettoyer(m.matiere.nom), X + 5, y + 5, { width: largeurMatiere - 10 });
+      const yCentre = y + (h - 10.35) / 2;
+      doc.font('Helvetica-Bold').fillColor(m.moyenne === null ? GRIS : BLEU)
+        .text(m.moyenne === null ? '—' : `${String(m.moyenne).replace('.', ',')}/20`, xMoyenne, yCentre, { width: COL_MOYENNE, align: 'center', lineBreak: false });
+      doc.font('Helvetica').fillColor(NOIR)
+        .text(String(m.nombreNotes), xNotes, yCentre, { width: COL_NOTES, align: 'center', lineBreak: false });
+      doc.moveTo(X, y + h).lineTo(X + L, y + h).lineWidth(0.5).strokeColor(FILET).stroke();
+      ctx.y = y + h;
+    });
+    ctx.y += 14;
+  }
+
+  // ─── Compétences par pôle ───────────────────────────────────────────────
+  titreSection(ctx, 'Compétences par pôle');
+  tableauxParPole(ctx, poles);
+  legendeNiveaux(ctx);
+
+  // ─── Appréciation générale ──────────────────────────────────────────────
+  if (commentaire?.commentaire) {
+    ctx.y += 8;
+    titreSection(ctx, 'Appréciation générale');
+    paragraphe(ctx, commentaire.commentaire, { police: 'Helvetica-Oblique', taille: 10 });
+    if (commentaire.objectifProchainTrimestre) {
+      ctx.y += 8;
+      ctx.assurerPlace(30);
+      doc.font('Helvetica-Bold').fontSize(9).fillColor(BLEU).text('Objectif pour le prochain trimestre', X, ctx.y, { width: L, lineBreak: false });
+      ctx.y += 14;
+      paragraphe(ctx, commentaire.objectifProchainTrimestre);
+    }
+  }
+
+  return ctx.fin();
 };
 
 // ─── Liste des élèves pour l'enseignant ──────────────────────────────────────
