@@ -1,4 +1,4 @@
-import { useState, useCallback, Fragment } from 'react';
+import { useState, useCallback, useRef, useLayoutEffect, Fragment } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -42,7 +42,7 @@ const scoreParPole = (competences, niveaux = {}) => {
 
 // ─── Sélecteurs communs ───────────────────────────────────────────────────────
 
-function SelectClasse({ value, onChange }) {
+function SelectClasse({ value, onChange, compact = false }) {
   const { data: classes = [] } = useQuery({
     queryKey: ['classes'],
     queryFn: () => api.get('/classes').then((r) => r.data),
@@ -51,7 +51,7 @@ function SelectClasse({ value, onChange }) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      className={`border border-gray-200 rounded-lg px-3 ${compact ? 'py-1 text-xs' : 'py-2 text-sm'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
     >
       <option value="">— Classe —</option>
       {classes.map((c) => <option key={c.id} value={c.id}>{c.nom}</option>)}
@@ -59,7 +59,7 @@ function SelectClasse({ value, onChange }) {
   );
 }
 
-function SelectMatiere({ value, onChange }) {
+function SelectMatiere({ value, onChange, compact = false }) {
   const { data: matieres = [] } = useQuery({
     queryKey: ['matieres'],
     queryFn: () => api.get('/matieres').then((r) => r.data),
@@ -68,7 +68,7 @@ function SelectMatiere({ value, onChange }) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      className={`border border-gray-200 rounded-lg px-3 ${compact ? 'py-1 text-xs' : 'py-2 text-sm'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
     >
       <option value="">— Toutes les matières —</option>
       {matieres.map((m) => <option key={m.id} value={m.id}>{m.code} — {m.nom}</option>)}
@@ -262,7 +262,10 @@ const LARGEUR_COL = 40;
 const LARGEUR_ELEVE = 140;
 const LARGEUR_IA = 36;
 const HAUTEUR_LIGNE_POLES = 28;
-const HAUTEUR_LIGNE_ELEVE = 28;
+const HAUTEUR_LIGNE_ELEVE = 24;
+// Marge sous la grille (espacement + marge basse du contenu) et hauteur minimale de la zone
+const MARGE_BAS_PAGE = 40;
+const HAUTEUR_ZONE_MIN = 240;
 const HAUTEUR_MAX_ENTETE = 100; // texte vertical des compétences, coupé par « … » au-delà
 // Superposition des éléments fixes : angle > en-têtes > colonnes Élève/IA
 const Z_COLONNES = 20;
@@ -485,33 +488,45 @@ function OngletGrille() {
       ? niveauxLocaux[eleveId][competenceId]
       : data?.niveaux?.[eleveId]?.[competenceId] ?? null;
 
-  return (
-    <div className="space-y-4">
-      <Card>
-        <div className="flex flex-wrap gap-3 items-end justify-between">
-          <div className="flex flex-wrap gap-3 items-end">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">Classe *</label>
-              <SelectClasse value={classeId} onChange={(v) => { setClasseId(v); setNiveauxLocaux({}); setModifie(false); }} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">Matière</label>
-              <SelectMatiere value={matiereId} onChange={(v) => { setMatiereId(v); setNiveauxLocaux({}); setModifie(false); }} />
-            </div>
-          </div>
+  // Hauteur max de la zone de défilement : de son bord haut jusqu'au bas de l'écran,
+  // moins la légende et la marge basse de la page
+  const refZone = useRef(null);
+  const refLegende = useRef(null);
+  const [hauteurZone, setHauteurZone] = useState(null);
+  const grilleAffichee = !!classeId && !isLoading && competences.length > 0;
+  useLayoutEffect(() => {
+    if (!grilleAffichee) return undefined;
+    const calculer = () => {
+      if (!refZone.current) return;
+      const haut = refZone.current.getBoundingClientRect().top;
+      const legende = refLegende.current?.offsetHeight ?? 0;
+      setHauteurZone(Math.max(HAUTEUR_ZONE_MIN, Math.floor(window.innerHeight - haut - legende - MARGE_BAS_PAGE)));
+    };
+    calculer();
+    window.addEventListener('resize', calculer);
+    return () => window.removeEventListener('resize', calculer);
+  }, [grilleAffichee]);
 
-          {modifie && (
-            <button
-              onClick={() => sauvegarder.mutate()}
-              disabled={sauvegarder.isPending}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {sauvegarder.isPending ? <Spinner size="sm" /> : <CheckCircle2 className="w-4 h-4" />}
-              Sauvegarder les modifications
-            </button>
-          )}
+  return (
+    <div className="space-y-2">
+      {/* Barre de filtres compacte (remplace la carte, pour gagner de la hauteur) */}
+      <div className="flex flex-wrap gap-2 items-center justify-between">
+        <div className="flex flex-wrap gap-2 items-center">
+          <SelectClasse compact value={classeId} onChange={(v) => { setClasseId(v); setNiveauxLocaux({}); setModifie(false); }} />
+          <SelectMatiere compact value={matiereId} onChange={(v) => { setMatiereId(v); setNiveauxLocaux({}); setModifie(false); }} />
         </div>
-      </Card>
+
+        {modifie && (
+          <button
+            onClick={() => sauvegarder.mutate()}
+            disabled={sauvegarder.isPending}
+            className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {sauvegarder.isPending ? <Spinner size="sm" /> : <CheckCircle2 className="w-4 h-4" />}
+            Sauvegarder les modifications
+          </button>
+        )}
+      </div>
 
       {!classeId && (
         <div className="text-center py-16 text-gray-400">Sélectionnez une classe pour afficher la grille.</div>
@@ -526,11 +541,13 @@ function OngletGrille() {
       )}
 
       {classeId && !isLoading && competences.length > 0 && (
-        <div className="space-y-3">
-        {/* Zone de défilement ajustée à la largeur du tableau ; en-têtes et colonnes Élève/IA fixes */}
+        <div className="space-y-2">
+        {/* Zone de défilement ajustée à la largeur du tableau et à la hauteur restante de l'écran ;
+            en-têtes et colonnes Élève/IA fixes */}
         <div
+          ref={refZone}
           className="w-fit max-w-full overflow-auto rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800"
-          style={{ maxHeight: 'calc(100vh - 220px)' }}
+          style={{ maxHeight: hauteurZone ?? 'calc(100vh - 220px)' }}
         >
           {/* border-separate : en border-collapse, les bordures des cellules sticky ne suivent pas le défilement */}
           <table className="text-xs min-w-max" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
@@ -650,19 +667,19 @@ function OngletGrille() {
         </div>
 
         {/* Légende des niveaux, sous le tableau */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div ref={refLegende} className="flex flex-wrap items-center gap-1.5">
           {NIVEAUX.map((n) => {
             const c = cfg(n);
             return (
-              <span key={n} className={`text-xs px-2.5 py-1 rounded-full font-semibold ${c.bg} ${c.text}`}>
+              <span key={n} className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${c.bg} ${c.text}`}>
                 {c.court} — {c.label}
               </span>
             );
           })}
-          <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-white dark:bg-slate-800 text-gray-500 border border-gray-200 dark:border-slate-600">
+          <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-white dark:bg-slate-800 text-gray-500 border border-gray-200 dark:border-slate-600">
             Vide — Non évalué
           </span>
-          <span className="text-xs text-gray-400 ml-2">Clic sur une cellule : niveau suivant (jusqu'à revenir à non évalué) · clic droit : non évalué · survoler un code pour voir la compétence</span>
+          <span className="text-[11px] text-gray-400 ml-1">Clic : niveau suivant · clic droit : non évalué · survol d'un code : libellé complet</span>
         </div>
         </div>
       )}
@@ -794,22 +811,18 @@ export default function Certification() {
   const ongletsFiltres = ONGLETS.filter((o) => o.id !== 'grille' || estEnseignant);
 
   return (
-    <div className="space-y-6">
-      {/* En-tête */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center">
-          <Award className="w-5 h-5 text-white" />
+    <div className="space-y-3">
+      {/* En-tête compact : titre et onglets sur une seule ligne, pour laisser la hauteur à la grille */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+            <Award className="w-4 h-4 text-white" />
+          </div>
+          <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">Certification finale</h1>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Certification finale</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Radar par pôle · Grille de synthèse · Export PDF profil de certification
-          </p>
-        </div>
-      </div>
 
       {/* Onglets */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-gray-100 dark:bg-slate-700 rounded-xl p-1 w-fit">
         {ongletsFiltres.map((o) => (
           <button
             key={o.id}
@@ -822,6 +835,7 @@ export default function Certification() {
             {o.label}
           </button>
         ))}
+      </div>
       </div>
 
       {onglet === 'radar'  && <OngletRadar  estEleve={estEleve} monId={utilisateur?.id} />}
