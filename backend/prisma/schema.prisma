@@ -136,6 +136,8 @@ model Pole {
   id        String   @id @default(cuid())
   code      String
   titre     String
+  // Libellé court affiché dans les en-têtes (grille de synthèse) ; généré depuis le titre si vide
+  libelleCourt String? @map("libelle_court")
   ordre     Int      @default(0)
   matiereId String
   createdAt DateTime @default(now())
@@ -164,6 +166,8 @@ model Competence {
   id          String   @id @default(cuid())
   code        String
   description String
+  // Libellé court affiché dans les en-têtes (grille de synthèse) ; généré depuis la description si vide
+  libelleCourt String? @map("libelle_court")
   matiereId   String
   poleId      String?
   ordre       Int      @default(0)

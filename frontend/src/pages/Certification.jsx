@@ -257,33 +257,59 @@ const COULEURS_POLES = [
   { entete: 'bg-violet-600 text-white',  sous: 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300' },
 ];
 
+// Dimensions de la grille (px) : tient à l'écran à 100 % en 1366x768 comme en 1920x1080
+const LARGEUR_COL = 40;
+const LARGEUR_ELEVE = 180;
+const LARGEUR_IA = 36;
+const HAUTEUR_LIGNE_POLES = 28;
+const HAUTEUR_OBLIQUE = 120; // hauteur des en-têtes inclinés à 45°
+const HAUTEUR_LIGNE_ELEVE = 28;
+// Superposition des éléments fixes : angle > en-têtes > colonnes Élève/IA
+const Z_COLONNES = 20;
+const Z_ENTETE = 30;
+const Z_ANGLE = 1000;
+
+// Classes de couleur de texte d'une palette (« bg-… text-… dark:text-… » → « text-… dark:text-… »)
+const classesTexte = (classes) => classes.split(' ').filter((cl) => cl.includes('text-')).join(' ');
+
 const triNaturel = (a = '', b = '') => a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' });
 const numero = (texte) => Number(texte?.match(/\d+/)?.[0] ?? Infinity);
 
-// Premier mot significatif d'un libellé (« Pôle 1 : La réception des produits » → « Réception »),
-// en sautant articles, prépositions, « Pôle », numéros et codes ; '' si aucun
+// Libellé court : 3 mots significatifs du libellé complet (verbe d'action + 2 mots suivants),
+// en sautant mots vides, « Pôle », numéros et codes ; 28 caractères maximum.
+// « Participer aux opérations de réception » → « Participer opérations réception »
 const MOTS_VIDES = new Set([
-  'le', 'la', 'les', 'l', 'un', 'une', 'des', 'de', 'du', 'd', 'et', 'à', 'a', 'au', 'aux', 'en', 'pour', 'sur', 'par',
+  'le', 'la', 'les', 'l', 'de', 'du', 'des', 'd', 'à', 'au', 'aux', 'en', 'et', 'un', 'une', 'pour', 'sur', 'avec',
   'pôle', 'pole', 'compétence', 'competence', 'bloc',
 ]);
-const motCle = (texte = '') => {
+const LONGUEUR_MAX_LIBELLE = 28;
+
+const tronquer = (texte, max = LONGUEUR_MAX_LIBELLE) =>
+  texte.length > max ? `${texte.slice(0, max - 1).trimEnd()}…` : texte;
+
+const genererLibelleCourt = (texte = '', nbMots = 3) => {
+  const mots = [];
   for (const brut of texte.split(/[\s'’:;,.–—()/]+|\s-\s/)) {
     const mot = brut.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, '');
     if (!mot || /\d/.test(brut) || MOTS_VIDES.has(mot.toLowerCase())) continue;
-    return mot.charAt(0).toUpperCase() + mot.slice(1);
+    mots.push(mots.length ? mot : mot.charAt(0).toUpperCase() + mot.slice(1));
+    if (mots.length === nbMots) break;
   }
-  return '';
+  return tronquer(mots.join(' '));
 };
+
+// Libellé court enregistré en base en priorité, sinon généré depuis le libellé complet
+const libelleCourt = (enregistre, complet) => tronquer(enregistre?.trim() || genererLibelleCourt(complet));
 
 // Pôle d'une compétence : celui du référentiel s'il existe, sinon le préfixe du code (« C1.2 » → « C1 »)
 const poleDe = (c) => {
   const code = c.pole?.code ?? pole(c.codeCourt ?? c.code);
   const n = numero(code);
   const libelle = Number.isFinite(n) ? `P${n}` : code;
-  const mot = motCle(c.pole?.titre);
+  const court = libelleCourt(c.pole?.libelleCourt, c.pole?.titre);
   return {
     cle: c.pole?.id ?? `code:${code}`,
-    libelle: mot ? `${libelle} · ${mot}` : libelle,
+    libelle: court ? `${libelle} · ${court}` : libelle,
     titre: c.pole?.titre || libelle,
     ordre: Number.isFinite(n) ? n : (c.pole?.ordre ?? Infinity),
   };
@@ -313,7 +339,7 @@ function CelluleNiveau({ niveau, eleveId, competenceId, onChange, readOnly }) {
       onClick={suivant}
       onContextMenu={reinitialiser}
       title={`${c.label} — clic : niveau suivant · clic droit : non évalué`}
-      className={`inline-flex items-center justify-center w-10 h-5 rounded text-[10px] font-bold transition-transform hover:scale-110 ${c.bg} ${c.text} ${niveau ? '' : 'border border-gray-200 dark:border-slate-600'}`}
+      className={`inline-flex items-center justify-center w-8 h-5 rounded text-[10px] font-bold transition-transform hover:scale-110 ${c.bg} ${c.text} ${niveau ? '' : 'border border-gray-200 dark:border-slate-600'}`}
     >
       {niveau ? c.court : ''}
     </button>
@@ -450,7 +476,9 @@ function OngletGrille() {
       couleur: COULEURS_POLES[i % COULEURS_POLES.length],
       competences: p.competences.sort((a, b) => triNaturel(a.codeCourt ?? a.code, b.codeCourt ?? b.code)),
     }));
-  const competences = polesArr.flatMap((p) => p.competences.map((c) => ({ ...c, couleur: p.couleur })));
+  const competences = polesArr.flatMap((p) => p.competences.map((c) => ({
+    ...c, couleur: p.couleur, libelleAffiche: libelleCourt(c.libelleCourt, c.description),
+  })));
   // Première compétence de chaque pôle : bordure gauche marquée pour séparer les groupes
   const debutsPole = new Set(polesArr.map((p) => p.competences[0]?.id));
 
@@ -502,66 +530,105 @@ function OngletGrille() {
 
       {classeId && !isLoading && competences.length > 0 && (
         <div className="space-y-3">
-        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800">
-          <table className="text-xs min-w-max border-collapse">
+        {/* Le tableau tient à l'écran : défilement interne, en-têtes et colonnes Élève/IA fixes */}
+        <div
+          className="overflow-auto rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-800"
+          style={{ maxHeight: 'calc(100vh - 220px)' }}
+        >
+          {/* border-separate : en border-collapse, les bordures des cellules sticky ne suivent pas le défilement */}
+          <table className="text-xs min-w-max" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
             <thead>
               {/* Ligne pôles : un en-tête coloré sur toute la largeur du pôle */}
               <tr>
+                {/* Cellules d'angle : fixes en haut ET à gauche, au-dessus de tout */}
                 <th
                   rowSpan={2}
-                  className="sticky left-0 z-20 bg-gray-50 dark:bg-slate-700 text-left align-bottom px-4 py-2 font-semibold text-gray-600 dark:text-slate-300 min-w-[180px] border-b border-r border-gray-200 dark:border-slate-600"
+                  style={{ top: 0, left: 0, zIndex: Z_ANGLE, width: LARGEUR_ELEVE, minWidth: LARGEUR_ELEVE, maxWidth: LARGEUR_ELEVE }}
+                  className="sticky bg-gray-50 dark:bg-slate-700 text-left align-bottom px-4 py-2 font-semibold text-gray-600 dark:text-slate-300 border-b border-r border-gray-200 dark:border-slate-600"
                 >
                   Élève
                 </th>
-                <th rowSpan={2} className="px-2 py-2 align-bottom text-gray-400 font-medium whitespace-nowrap border-b border-gray-200 dark:border-slate-600">IA</th>
+                <th
+                  rowSpan={2}
+                  style={{ top: 0, left: LARGEUR_ELEVE, zIndex: Z_ANGLE, width: LARGEUR_IA, minWidth: LARGEUR_IA, maxWidth: LARGEUR_IA }}
+                  className="sticky bg-gray-50 dark:bg-slate-700 px-1 py-2 align-bottom text-gray-400 font-medium whitespace-nowrap border-b border-r border-gray-200 dark:border-slate-600"
+                >
+                  IA
+                </th>
                 {polesArr.map((p) => (
                   <th
                     key={p.cle}
                     colSpan={p.competences.length}
                     title={p.titre}
-                    style={{ maxWidth: 48 * p.competences.length }}
-                    className={`px-1 py-1.5 font-bold text-center whitespace-nowrap overflow-hidden text-ellipsis border-l-2 border-white dark:border-slate-800 ${p.couleur.entete}`}
+                    style={{ top: 0, zIndex: Z_ENTETE + competences.length + 1, height: HAUTEUR_LIGNE_POLES, maxWidth: LARGEUR_COL * p.competences.length }}
+                    className={`sticky px-1 text-[11px] font-bold text-center whitespace-nowrap overflow-hidden text-ellipsis border-l-2 border-white dark:border-slate-800 ${p.couleur.entete}`}
                   >
                     {p.libelle}
                   </th>
                 ))}
+                {/* Réserve à droite : le dernier en-tête oblique déborde de HAUTEUR_OBLIQUE px */}
+                <th
+                  rowSpan={2}
+                  aria-hidden="true"
+                  style={{ top: 0, zIndex: Z_ENTETE - 1, width: HAUTEUR_OBLIQUE, minWidth: HAUTEUR_OBLIQUE }}
+                  className="sticky bg-white dark:bg-slate-800"
+                />
               </tr>
-              {/* Ligne compétences : code court + premier mot en vertical, libellé complet en info-bulle.
-                  Hauteur automatique (celle du texte le plus long) : pas de hauteur fixe ni d'espace vide */}
+              {/* Ligne compétences : texte incliné à 45° sur fond de parallélogramme (style Excel).
+                  Chaque en-tête déborde sur les colonnes suivantes : z-index décroissant de gauche à droite */}
               <tr>
-                {competences.map((c) => {
-                  const mot = motCle(c.description);
-                  return (
-                    <th
-                      key={c.id}
-                      title={c.description}
-                      style={{ width: 48, minWidth: 48, maxWidth: 48, height: 'auto', padding: 4, overflow: 'hidden', lineHeight: 1 }}
-                      className={`align-bottom text-center cursor-help border-b border-gray-200 dark:border-slate-600 ${c.couleur.sous} ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
+                {competences.map((c, i) => (
+                  <th
+                    key={c.id}
+                    title={c.description}
+                    style={{
+                      top: HAUTEUR_LIGNE_POLES, zIndex: Z_ENTETE + competences.length - i,
+                      width: LARGEUR_COL, minWidth: LARGEUR_COL, maxWidth: LARGEUR_COL, height: HAUTEUR_OBLIQUE,
+                      padding: 0, overflow: 'visible',
+                    }}
+                    className="sticky bg-white dark:bg-slate-800 cursor-help border-b border-gray-200 dark:border-slate-600"
+                  >
+                    {/* Parallélogramme : fond coloré du pôle et fine bordure oblique de la colonne */}
+                    <div
+                      style={{
+                        position: 'absolute', left: 0, bottom: 0, width: LARGEUR_COL, height: HAUTEUR_OBLIQUE,
+                        transform: 'skewX(-45deg)', transformOrigin: 'bottom left',
+                      }}
+                      className={`${c.couleur.sous} ${debutsPole.has(c.id) ? 'border-l-2 border-gray-300 dark:border-slate-500' : 'border-l border-gray-200 dark:border-slate-600'} ${i === competences.length - 1 ? 'border-r border-gray-200 dark:border-slate-600' : ''}`}
+                    />
+                    {/* Texte incliné, lisible de bas-gauche vers haut-droite ; la rotation autour du coin bas-gauche
+                        décale la boîte vers le haut-gauche : départ à 30 px pour la centrer dans le parallélogramme */}
+                    <div
+                      style={{
+                        position: 'absolute', left: 30, bottom: 2,
+                        transform: 'rotate(-45deg)', transformOrigin: 'bottom left',
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        maxWidth: Math.round(HAUTEUR_OBLIQUE * Math.SQRT2) - 12,
+                        fontSize: 10, lineHeight: '12px', textAlign: 'left',
+                      }}
+                      className={classesTexte(c.couleur.sous)}
                     >
-                      {/* Texte vertical isolé dans le span (bloc, sans ligne de base) : le writing-mode ne s'applique qu'à lui */}
-                      <span
-                        style={{
-                          writingMode: 'vertical-rl', transform: 'rotate(180deg)',
-                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                          maxHeight: 140, fontSize: 11, display: 'block', margin: '0 auto',
-                        }}
-                      >
-                        <span className="font-mono font-bold">{c.codeCourt}</span>
-                        {mot && <span className="font-normal"> {mot}</span>}
-                      </span>
-                    </th>
-                  );
-                })}
+                      <span className="font-mono font-bold">{c.codeCourt}</span>
+                      {c.libelleAffiche && <span className="font-normal"> {c.libelleAffiche}</span>}
+                    </div>
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+            <tbody>
               {eleves.map((eleve) => (
                 <Fragment key={eleve.id}>
-                  <tr className="hover:bg-gray-50/50 dark:hover:bg-slate-700/40">
-                    <td className="sticky left-0 z-10 bg-white dark:bg-slate-800 px-4 py-0.5 font-medium text-gray-900 dark:text-slate-100 whitespace-nowrap border-r border-gray-200 dark:border-slate-600">
+                  <tr style={{ height: HAUTEUR_LIGNE_ELEVE }} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/40">
+                    <td
+                      style={{ left: 0, zIndex: Z_COLONNES, width: LARGEUR_ELEVE, minWidth: LARGEUR_ELEVE, maxWidth: LARGEUR_ELEVE }}
+                      className="sticky bg-white dark:bg-slate-800 px-4 py-0 text-[12px] leading-tight font-medium text-gray-900 dark:text-slate-100 whitespace-nowrap overflow-hidden text-ellipsis border-b border-b-gray-100 dark:border-b-slate-700 border-r border-gray-200 dark:border-slate-600"
+                    >
                       {eleve.nom} {eleve.prenom}
                     </td>
-                    <td className="px-2 py-0.5 text-center">
+                    <td
+                      style={{ left: LARGEUR_ELEVE, zIndex: Z_COLONNES, width: LARGEUR_IA, minWidth: LARGEUR_IA, maxWidth: LARGEUR_IA }}
+                      className="sticky bg-white dark:bg-slate-800 px-1 py-0 text-center border-b border-b-gray-100 dark:border-b-slate-700 border-r border-gray-200 dark:border-slate-600"
+                    >
                       <button
                         onClick={() => toggleSuggestions(eleve.id)}
                         title="Suggérer niveaux depuis les notes"
@@ -573,8 +640,8 @@ function OngletGrille() {
                     {competences.map((c) => (
                       <td
                         key={c.id}
-                        style={{ width: 48, minWidth: 48, maxWidth: 48, writingMode: 'horizontal-tb', overflow: 'hidden' }}
-                        className={`px-0 py-0.5 text-center ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
+                        style={{ width: LARGEUR_COL, minWidth: LARGEUR_COL, maxWidth: LARGEUR_COL, writingMode: 'horizontal-tb', overflow: 'hidden' }}
+                        className={`px-0 py-0 text-center border-b border-b-gray-100 dark:border-b-slate-700 ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
                       >
                         <CelluleNiveau
                           niveau={niveauEffectif(eleve.id, c.id)}
@@ -587,7 +654,7 @@ function OngletGrille() {
                   </tr>
                   {lignesSug[eleve.id] && (
                     <tr key={`sug-${eleve.id}`} className="bg-indigo-50/60 dark:bg-indigo-900/20">
-                      <td className="sticky left-0 z-10 bg-indigo-50/80 dark:bg-indigo-900/30 px-4 py-1 text-xs text-indigo-600 dark:text-indigo-300 font-medium whitespace-nowrap">
+                      <td style={{ zIndex: Z_COLONNES }} className="sticky left-0 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-1 text-xs text-indigo-600 dark:text-indigo-300 font-medium whitespace-nowrap">
                         Suggestions notes
                       </td>
                       <LigneSuggestions
