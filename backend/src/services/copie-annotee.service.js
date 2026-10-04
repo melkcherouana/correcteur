@@ -320,7 +320,19 @@ const ajouterBilan = (doc, bilan) => {
  * Annote une copie .docx.
  * Retourne le fichier annoté et un modèle (texte + plages annotées) réutilisé pour le PDF.
  */
-export const annoterDocx = async (buffer, { analyse, resultat, auteur = 'Enseignant' }) => {
+// Bandeau d'identification en tête de copie (nom de l'élève + note), sur fond bleu clair
+const ajouterEnTete = (doc, eleve, note) => {
+  const body = doc.getElementsByTagNameNS(W, 'body')[0];
+  const p = paragraphe(doc, [
+    { texte: `${eleve.nom} ${eleve.prenom}`, gras: true, couleur: '1E293B' },
+    { texte: `      Note : ${note}`, gras: true, couleur: '4F46E5' },
+  ], { taille: 28 });
+  const pPr = enfantsElements(p).find((n) => estW(n, 'pPr'));
+  pPr.insertBefore(creerW(doc, 'shd', { val: 'clear', color: 'auto', fill: 'EEF2FF' }), pPr.firstChild);
+  body.insertBefore(p, body.firstChild);
+};
+
+export const annoterDocx = async (buffer, { analyse, resultat, eleve = null, auteur = 'Enseignant' }) => {
   let zip;
   try {
     zip = await JSZip.loadAsync(buffer);
@@ -379,6 +391,7 @@ export const annoterDocx = async (buffer, { analyse, resultat, auteur = 'Enseign
 
   const bilan = construireBilan(resultat, analyse, nonLocalisees);
   ajouterBilan(doc, bilan);
+  if (eleve) ajouterEnTete(doc, eleve, bilan.note);
 
   const xml = new XMLSerializer();
   zip.file('word/document.xml', xml.serializeToString(doc));

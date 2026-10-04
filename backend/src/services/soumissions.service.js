@@ -246,6 +246,7 @@ const annoterUneCopie = async (soumission, evaluation) => {
   return annoterDocx(Buffer.from(soumission.fichierData), {
     analyse,
     resultat: soumission.resultatIA,
+    eleve: soumission.eleve,
     auteur: auteurAnnotations(evaluation),
   });
 };
