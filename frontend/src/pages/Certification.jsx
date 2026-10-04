@@ -262,15 +262,11 @@ const LARGEUR_COL = 40;
 const LARGEUR_ELEVE = 180;
 const LARGEUR_IA = 36;
 const HAUTEUR_LIGNE_POLES = 28;
-const HAUTEUR_OBLIQUE = 120; // hauteur des en-têtes inclinés à 45°
 const HAUTEUR_LIGNE_ELEVE = 28;
 // Superposition des éléments fixes : angle > en-têtes > colonnes Élève/IA
 const Z_COLONNES = 20;
 const Z_ENTETE = 30;
-const Z_ANGLE = 1000;
-
-// Classes de couleur de texte d'une palette (« bg-… text-… dark:text-… » → « text-… dark:text-… »)
-const classesTexte = (classes) => classes.split(' ').filter((cl) => cl.includes('text-')).join(' ');
+const Z_ANGLE = 40;
 
 const triNaturel = (a = '', b = '') => a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' });
 const numero = (texte) => Number(texte?.match(/\d+/)?.[0] ?? Infinity);
@@ -560,57 +556,38 @@ function OngletGrille() {
                     key={p.cle}
                     colSpan={p.competences.length}
                     title={p.titre}
-                    style={{ top: 0, zIndex: Z_ENTETE + competences.length + 1, height: HAUTEUR_LIGNE_POLES, maxWidth: LARGEUR_COL * p.competences.length }}
+                    style={{ top: 0, zIndex: Z_ENTETE, height: HAUTEUR_LIGNE_POLES, maxWidth: LARGEUR_COL * p.competences.length }}
                     className={`sticky px-1 text-[11px] font-bold text-center whitespace-nowrap overflow-hidden text-ellipsis border-l-2 border-white dark:border-slate-800 ${p.couleur.entete}`}
                   >
                     {p.libelle}
                   </th>
                 ))}
-                {/* Réserve à droite : le dernier en-tête oblique déborde de HAUTEUR_OBLIQUE px */}
-                <th
-                  rowSpan={2}
-                  aria-hidden="true"
-                  style={{ top: 0, zIndex: Z_ENTETE - 1, width: HAUTEUR_OBLIQUE, minWidth: HAUTEUR_OBLIQUE }}
-                  className="sticky bg-white dark:bg-slate-800"
-                />
               </tr>
-              {/* Ligne compétences : texte incliné à 45° sur fond de parallélogramme (style Excel).
-                  Chaque en-tête déborde sur les colonnes suivantes : z-index décroissant de gauche à droite */}
+              {/* Ligne compétences : code + libellé court en vertical, libellé complet en info-bulle.
+                  Hauteur ajustée au texte le plus long */}
               <tr>
-                {competences.map((c, i) => (
+                {competences.map((c) => (
                   <th
                     key={c.id}
                     title={c.description}
                     style={{
-                      top: HAUTEUR_LIGNE_POLES, zIndex: Z_ENTETE + competences.length - i,
-                      width: LARGEUR_COL, minWidth: LARGEUR_COL, maxWidth: LARGEUR_COL, height: HAUTEUR_OBLIQUE,
-                      padding: 0, overflow: 'visible',
+                      top: HAUTEUR_LIGNE_POLES, zIndex: Z_ENTETE,
+                      width: LARGEUR_COL, minWidth: LARGEUR_COL, maxWidth: LARGEUR_COL,
+                      height: 'auto', padding: 4, overflow: 'hidden', lineHeight: 1,
                     }}
-                    className="sticky bg-white dark:bg-slate-800 cursor-help border-b border-gray-200 dark:border-slate-600"
+                    className={`sticky align-bottom text-center cursor-help border-b border-gray-200 dark:border-slate-600 ${c.couleur.sous} ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
                   >
-                    {/* Parallélogramme : fond coloré du pôle et fine bordure oblique de la colonne */}
-                    <div
+                    {/* Texte vertical isolé dans le span (bloc, sans ligne de base) : le writing-mode ne s'applique qu'à lui */}
+                    <span
                       style={{
-                        position: 'absolute', left: 0, bottom: 0, width: LARGEUR_COL, height: HAUTEUR_OBLIQUE,
-                        transform: 'skewX(-45deg)', transformOrigin: 'bottom left',
-                      }}
-                      className={`${c.couleur.sous} ${debutsPole.has(c.id) ? 'border-l-2 border-gray-300 dark:border-slate-500' : 'border-l border-gray-200 dark:border-slate-600'} ${i === competences.length - 1 ? 'border-r border-gray-200 dark:border-slate-600' : ''}`}
-                    />
-                    {/* Texte incliné, lisible de bas-gauche vers haut-droite ; la rotation autour du coin bas-gauche
-                        décale la boîte vers le haut-gauche : départ à 30 px pour la centrer dans le parallélogramme */}
-                    <div
-                      style={{
-                        position: 'absolute', left: 30, bottom: 2,
-                        transform: 'rotate(-45deg)', transformOrigin: 'bottom left',
+                        writingMode: 'vertical-rl', transform: 'rotate(180deg)',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                        maxWidth: Math.round(HAUTEUR_OBLIQUE * Math.SQRT2) - 12,
-                        fontSize: 10, lineHeight: '12px', textAlign: 'left',
+                        maxHeight: 160, fontSize: 10, display: 'block', margin: '0 auto',
                       }}
-                      className={classesTexte(c.couleur.sous)}
                     >
                       <span className="font-mono font-bold">{c.codeCourt}</span>
                       {c.libelleAffiche && <span className="font-normal"> {c.libelleAffiche}</span>}
-                    </div>
+                    </span>
                   </th>
                 ))}
               </tr>
