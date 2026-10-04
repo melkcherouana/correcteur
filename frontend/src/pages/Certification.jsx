@@ -259,11 +259,10 @@ const COULEURS_POLES = [
 
 const triNaturel = (a = '', b = '') => a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' });
 const numero = (texte) => Number(texte?.match(/\d+/)?.[0] ?? Infinity);
-const tronquer = (texte = '', max = 20) => (texte.length > max ? `${texte.slice(0, max - 1)}…` : texte);
 
 // Pôle d'une compétence : celui du référentiel s'il existe, sinon le préfixe du code (« C1.2 » → « C1 »)
 const poleDe = (c) => {
-  const code = c.pole?.code ?? pole(c.code);
+  const code = c.pole?.code ?? pole(c.codeCourt ?? c.code);
   const n = numero(code);
   return {
     cle: c.pole?.id ?? `code:${code}`,
@@ -426,7 +425,7 @@ function OngletGrille() {
     .map((p, i) => ({
       ...p,
       couleur: COULEURS_POLES[i % COULEURS_POLES.length],
-      competences: p.competences.sort((a, b) => triNaturel(a.code, b.code)),
+      competences: p.competences.sort((a, b) => triNaturel(a.codeCourt ?? a.code, b.codeCourt ?? b.code)),
     }));
   const competences = polesArr.flatMap((p) => p.competences.map((c) => ({ ...c, couleur: p.couleur })));
   // Première compétence de chaque pôle : bordure gauche marquée pour séparer les groupes
@@ -507,11 +506,20 @@ function OngletGrille() {
                 {competences.map((c) => (
                   <th
                     key={c.id}
-                    title={tronquer(c.description)}
-                    style={{ writingMode: 'vertical-rl', width: 40, minWidth: 40, maxWidth: 40 }}
-                    className={`h-16 px-0 py-2 font-mono font-bold whitespace-nowrap cursor-help border-b border-gray-200 dark:border-slate-600 ${c.couleur.sous} ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
+                    title={c.description}
+                    style={{ width: 40, minWidth: 40, maxWidth: 40, height: 90, overflow: 'hidden' }}
+                    className={`px-0 py-1 align-bottom text-center font-mono font-bold cursor-help border-b border-gray-200 dark:border-slate-600 ${c.couleur.sous} ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
                   >
-                    {c.code}
+                    {/* Texte vertical isolé dans le span : le writing-mode ne s'applique qu'à lui */}
+                    <span
+                      style={{
+                        writingMode: 'vertical-rl', transform: 'rotate(180deg)',
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                        maxHeight: 82, fontSize: 11, display: 'inline-block',
+                      }}
+                    >
+                      {c.codeCourt}
+                    </span>
                   </th>
                 ))}
               </tr>
@@ -535,7 +543,7 @@ function OngletGrille() {
                     {competences.map((c) => (
                       <td
                         key={c.id}
-                        style={{ width: 40, minWidth: 40, maxWidth: 40 }}
+                        style={{ width: 40, minWidth: 40, maxWidth: 40, writingMode: 'horizontal-tb', overflow: 'hidden' }}
                         className={`px-0 py-1 text-center ${debutsPole.has(c.id) ? 'border-l-2 border-l-gray-300 dark:border-l-slate-500' : 'border-l border-l-gray-100 dark:border-l-slate-700'}`}
                       >
                         <CelluleNiveau

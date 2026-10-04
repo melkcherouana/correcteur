@@ -4,6 +4,53 @@ import prisma from '../utils/prisma.js';
 // Exemples : "C1.1" → "C1", "P2.3" → "P2", "A3" → "A3"
 export const extrairePole = (code) => code.split('.')[0];
 
+// ─── Code court d'affichage ──────────────────────────────────────────────────
+// Un import de référentiel peut enregistrer un libellé (« Participer à… ») à la
+// place du code : on affiche alors C{numéro du pôle}.{rang dans le pôle}.
+const CODE_COURT = /^[A-Z]{0,3}\d+(\.\d+)*[a-z]?$/i;
+
+// Numéro tiré du code du pôle (« P2 » → 2), sinon de son ordre ; 0 si la compétence n'a pas de pôle
+const numeroPole = (c) => {
+  const n = c.pole?.code?.match(/\d+/)?.[0];
+  if (n) return Number(n);
+  return c.pole ? c.pole.ordre + 1 : 0;
+};
+
+const codeValide = (code) => !!code && code.length <= 8 && CODE_COURT.test(code);
+
+export const ajouterCodesCourts = (competences) => {
+  const codesCourts = new Map();
+  const codesPris = new Set();
+  const parPole = new Map();
+  for (const c of competences) {
+    const code = c.code?.trim();
+    if (codeValide(code)) {
+      codesCourts.set(c.id, code);
+      codesPris.add(`${c.matiereId}|${code}`);
+    }
+    const cle = c.pole?.id ?? `matiere:${c.matiereId}`;
+    if (!parPole.has(cle)) parPole.set(cle, []);
+    parPole.get(cle).push(c);
+  }
+
+  // Code généré d'après le rang dans le pôle (ordre du référentiel, puis code),
+  // en sautant les codes déjà utilisés par une autre compétence de la matière
+  for (const groupe of parPole.values()) {
+    groupe
+      .sort((a, b) => a.ordre - b.ordre || a.code.localeCompare(b.code, 'fr', { numeric: true }))
+      .forEach((c, i) => {
+        if (codesCourts.has(c.id)) return;
+        let rang = i + 1;
+        while (codesPris.has(`${c.matiereId}|C${numeroPole(c)}.${rang}`)) rang++;
+        const code = `C${numeroPole(c)}.${rang}`;
+        codesCourts.set(c.id, code);
+        codesPris.add(`${c.matiereId}|${code}`);
+      });
+  }
+
+  return competences.map((c) => ({ ...c, codeCourt: codesCourts.get(c.id) }));
+};
+
 // ─── Synthèse classe × compétences ───────────────────────────────────────────
 // Retourne : élèves, compétences, niveaux certif, paliers moyens par matière
 
@@ -80,7 +127,7 @@ export const syntheseClasse = async (classeId, matiereId) => {
 
   return {
     eleves:        eleveRows.map((e) => e.eleve),
-    competences,
+    competences:   ajouterCodesCourts(competences),
     niveaux:       niveauxIndex,
     paliersMoyens,
   };
