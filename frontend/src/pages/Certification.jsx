@@ -263,6 +263,7 @@ const LARGEUR_ELEVE = 140;
 const LARGEUR_IA = 36;
 const HAUTEUR_LIGNE_POLES = 28;
 const HAUTEUR_LIGNE_ELEVE = 28;
+const HAUTEUR_MAX_ENTETE = 100; // texte vertical des compétences, coupé par « … » au-delà
 // Superposition des éléments fixes : angle > en-têtes > colonnes Élève/IA
 const Z_COLONNES = 20;
 const Z_ENTETE = 30;
@@ -582,7 +583,7 @@ function OngletGrille() {
                       style={{
                         writingMode: 'vertical-rl', transform: 'rotate(180deg)',
                         whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                        maxHeight: 160, fontSize: 10, display: 'block', margin: '0 auto',
+                        maxHeight: HAUTEUR_MAX_ENTETE, fontSize: 10, display: 'block', margin: '0 auto',
                       }}
                     >
                       <span className="font-mono font-bold">{c.codeCourt}</span>
