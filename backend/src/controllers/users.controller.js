@@ -103,3 +103,12 @@ export const modeleExcel = async (req, res, next) => {
     res.send(buffer);
   } catch (err) { next(err); }
 };
+
+export const exporterIdentifiants = async (req, res, next) => {
+  try {
+    const buffer = await usersService.exporterIdentifiants({ role: req.query.role || undefined });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="identifiants_evalpro.xlsx"');
+    res.send(buffer);
+  } catch (err) { next(err); }
+};

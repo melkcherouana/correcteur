@@ -957,6 +957,24 @@ export default function Users() {
           <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{total} compte{total !== 1 ? 's' : ''} au total</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              // Respecte le filtre de rôle courant (vide = tous les comptes actifs)
+              const res = await api.get('/users/export-identifiants', {
+                params: { role: filtreRole || undefined },
+                responseType: 'blob',
+              });
+              const url = URL.createObjectURL(res.data);
+              const a = document.createElement('a');
+              a.href = url; a.download = 'identifiants_evalpro.xlsx'; a.click();
+              URL.revokeObjectURL(url);
+            }}
+            title="Exporter les identifiants de connexion (Excel)"
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Exporter les identifiants
+          </button>
           <button onClick={() => setModalImport(true)} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-slate-200 text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors">
             <Upload className="w-4 h-4" />
             Importer

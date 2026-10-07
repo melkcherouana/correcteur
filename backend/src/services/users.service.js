@@ -252,3 +252,37 @@ export const genererModeleExcel = () => {
   XLSX.utils.book_append_sheet(wb, ws, 'Utilisateurs');
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 };
+
+// Export Excel des identifiants de connexion des comptes actifs (pas de mot
+// de passe : ils sont hachés avec bcrypt et ne peuvent pas être relus)
+export const exporterIdentifiants = async ({ role } = {}) => {
+  const utilisateurs = await prisma.utilisateur.findMany({
+    where: { actif: true, ...(role && { role }) },
+    select: {
+      identifiant: true, email: true, prenom: true, nom: true, role: true,
+      classe: { select: { classe: { select: { nom: true } } } },
+    },
+  });
+
+  const lignes = utilisateurs
+    .map((u) => ({
+      'Classe': u.classe?.classe?.nom ?? '',
+      'Nom': u.nom,
+      'Prénom': u.prenom,
+      'Identifiant': u.identifiant,
+      'Rôle': u.role,
+      'Email': u.email ?? '',
+    }))
+    // Tri par classe (comptes sans classe à la fin), puis nom et prénom
+    .sort((a, b) =>
+      (a.Classe === '') - (b.Classe === '')
+      || a.Classe.localeCompare(b.Classe, 'fr')
+      || a.Nom.localeCompare(b.Nom, 'fr')
+      || a['Prénom'].localeCompare(b['Prénom'], 'fr'));
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(lignes, { header: ['Classe', 'Nom', 'Prénom', 'Identifiant', 'Rôle', 'Email'] });
+  ws['!cols'] = [{ wch: 18 }, { wch: 18 }, { wch: 16 }, { wch: 24 }, { wch: 12 }, { wch: 30 }];
+  XLSX.utils.book_append_sheet(wb, ws, 'Identifiants');
+  return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+};

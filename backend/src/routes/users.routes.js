@@ -20,6 +20,9 @@ router.get('/import/modele', autoriser('ADMIN'), ctrl.modeleExcel);
 // POST /api/users/import — import en masse depuis Excel
 router.post('/import', autoriser('ADMIN'), upload.single('fichier'), ctrl.importerEnMasse);
 
+// GET /api/users/export-identifiants?role= — Excel des identifiants (avant /:id)
+router.get('/export-identifiants', autoriser('ADMIN'), ctrl.exporterIdentifiants);
+
 // GET /api/users — admin voit tout, les autres voient uniquement les actifs
 router.get('/', autoriser('ADMIN', 'ENSEIGNANT'), ctrl.lister);
 
