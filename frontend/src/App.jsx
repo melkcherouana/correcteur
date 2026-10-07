@@ -26,6 +26,7 @@ import PfmpDetail from './pages/PfmpDetail.jsx';
 import Ccf from './pages/Ccf.jsx';
 import CcfDetail from './pages/CcfDetail.jsx';
 import Absences from './pages/Absences.jsx';
+import MonProfil from './pages/MonProfil.jsx';
 
 function ProtectedRoute({ children }) {
   const { utilisateur, chargement } = useAuth();
@@ -105,6 +106,9 @@ export default function App() {
 
         {/* Absences */}
         <Route path="absences" element={<Absences />} />
+
+        {/* Mon profil (tous les rôles) */}
+        <Route path="mon-profil" element={<MonProfil />} />
 
         {/* Administration (ADMIN uniquement) */}
         <Route path="users"    element={<AdminRoute><Users /></AdminRoute>} />

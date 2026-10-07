@@ -4,7 +4,7 @@ import {
   Home, ClipboardList, Target, BarChart2, Sparkles,
   ScrollText, Settings, Users, GraduationCap,
   CalendarDays, ClipboardCheck, BookOpen, PenLine,
-  ChevronLeft, ChevronRight, ChevronDown, X, LogOut,
+  ChevronLeft, ChevronRight, ChevronDown, X, LogOut, UserCircle,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -355,6 +355,19 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapsed })
               </p>
               <p className="text-xs text-slate-400 truncate">{utilisateur?.role}</p>
             </div>
+
+            <NavLink
+              to="/mon-profil"
+              title="Mon profil"
+              className={({ isActive }) =>
+                clsx(
+                  'transition-colors flex-shrink-0',
+                  isActive ? 'text-indigo-400' : 'text-slate-400 hover:text-white'
+                )
+              }
+            >
+              <UserCircle className="w-4 h-4" />
+            </NavLink>
 
             <button
               onClick={handleDeconnexion}

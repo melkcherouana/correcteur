@@ -48,3 +48,13 @@ export const me = async (req, res, next) => {
     next(err);
   }
 };
+
+export const changerMotDePasse = async (req, res, next) => {
+  if (!validerRequete(req, res)) return;
+  try {
+    await authService.changerMotDePasse(req.utilisateur.id, req.body);
+    res.json({ message: 'Mot de passe modifié' });
+  } catch (err) {
+    next(err);
+  }
+};

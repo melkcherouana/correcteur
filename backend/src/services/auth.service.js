@@ -96,6 +96,8 @@ export const moi = async (id) => {
       createdAt: true,
       updatedAt: true,
       profil: true,
+      classe: { select: { classe: { select: { id: true, nom: true, niveau: true, annee: true } } } },
+      matieres: { select: { matiere: { select: { id: true, nom: true } } } },
     },
   });
 
@@ -103,4 +105,29 @@ export const moi = async (id) => {
     throw Object.assign(new Error('Utilisateur introuvable'), { status: 404 });
   }
   return utilisateur;
+};
+
+// Changement de mot de passe par l'utilisateur connecté : l'ancien mot de passe
+// est vérifié avec bcrypt avant d'enregistrer le nouveau hash.
+export const changerMotDePasse = async (id, { ancienMotDePasse, nouveauMotDePasse }) => {
+  const utilisateur = await prisma.utilisateur.findUnique({ where: { id } });
+  if (!utilisateur) {
+    throw Object.assign(new Error('Utilisateur introuvable'), { status: 404 });
+  }
+
+  const valide = await bcrypt.compare(ancienMotDePasse, utilisateur.motDePasse);
+  if (!valide) {
+    throw Object.assign(new Error('Ancien mot de passe incorrect'), { status: 400 });
+  }
+
+  if (await bcrypt.compare(nouveauMotDePasse, utilisateur.motDePasse)) {
+    throw Object.assign(new Error("Le nouveau mot de passe doit être différent de l'ancien"), { status: 400 });
+  }
+
+  const hash = await bcrypt.hash(nouveauMotDePasse, SALT_ROUNDS);
+  await prisma.utilisateur.update({
+    where: { id },
+    // Invalide aussi un éventuel lien de réinitialisation en cours
+    data: { motDePasse: hash, resetTokenHash: null, resetTokenExpiresAt: null },
+  });
 };

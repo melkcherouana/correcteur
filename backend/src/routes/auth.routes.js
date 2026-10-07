@@ -32,4 +32,17 @@ router.post(
 
 router.get('/me', verifierToken, authController.me);
 
+router.put(
+  '/mot-de-passe',
+  verifierToken,
+  body('ancienMotDePasse').notEmpty().withMessage("L'ancien mot de passe est requis"),
+  body('nouveauMotDePasse')
+    .isLength({ min: 8 })
+    .withMessage('Le nouveau mot de passe doit contenir au moins 8 caractères'),
+  body('confirmation')
+    .custom((valeur, { req }) => valeur === req.body.nouveauMotDePasse)
+    .withMessage('La confirmation ne correspond pas au nouveau mot de passe'),
+  authController.changerMotDePasse
+);
+
 export default router;
