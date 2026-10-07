@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, Mail, School, BookOpen, KeyRound, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { User, AtSign, Mail, School, BookOpen, KeyRound, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../services/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import Card, { CardHeader } from '../components/ui/Card.jsx';
@@ -111,7 +111,8 @@ export default function MonProfil() {
 
         <LigneInfo icon={User} label="Nom" valeur={utilisateur?.nom} />
         <LigneInfo icon={User} label="Prénom" valeur={utilisateur?.prenom} />
-        <LigneInfo icon={Mail} label="Email" valeur={utilisateur?.email} />
+        <LigneInfo icon={AtSign} label="Identifiant de connexion" valeur={utilisateur?.identifiant} />
+        <LigneInfo icon={Mail} label="Email" valeur={utilisateur?.email || 'Non renseigné'} />
         {utilisateur?.role === 'ELEVE' && (
           <LigneInfo
             icon={School}

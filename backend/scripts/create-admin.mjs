@@ -4,9 +4,10 @@ const prisma = new PrismaClient();
 
 const hash = await bcrypt.hash("Admin1234!", 12);
 const admin = await prisma.utilisateur.upsert({
-  where: { email: "admin@evalpro.fr" },
+  where: { identifiant: "admin.evalpro" },
   update: { role: "ADMIN", actif: true, motDePasse: hash },
   create: {
+    identifiant: "admin.evalpro",
     email: "admin@evalpro.fr",
     motDePasse: hash,
     prenom: "Admin",
@@ -14,5 +15,5 @@ const admin = await prisma.utilisateur.upsert({
     role: "ADMIN",
   },
 });
-console.log("Compte créé :", admin.email, "— rôle :", admin.role);
+console.log("Compte créé :", admin.identifiant, "— rôle :", admin.role);
 await prisma.$disconnect();

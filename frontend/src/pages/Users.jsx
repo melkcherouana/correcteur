@@ -124,6 +124,25 @@ function MiniModalCreerClasse({ onCreee, onFermer }) {
   );
 }
 
+/* ─── Identifiant de connexion ────────────────────────────── */
+
+// Aperçu de l'identifiant généré côté serveur (prenom.nom, minuscules, sans
+// accents ni espaces) ; le serveur ajoute un suffixe 2, 3… en cas d'homonyme
+const normaliserIdentifiant = (texte) =>
+  String(texte ?? '')
+    .toLowerCase()
+    .replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/ß/g, 'ss')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+
+const apercuIdentifiant = (prenom, nom) => {
+  const p = normaliserIdentifiant(prenom);
+  const n = normaliserIdentifiant(nom);
+  return p && n ? `${p}.${n}` : '';
+};
+
+const IDENTIFIANT_RE = /^[a-z0-9]+([._-][a-z0-9]+)*$/;
+
 /* ─── Modal création unitaire ─────────────────────────────── */
 
 function ModalCreerUtilisateur({ onFermer }) {
@@ -135,6 +154,7 @@ function ModalCreerUtilisateur({ onFermer }) {
   const [miniClasse, setMiniClasse] = useState(false);
 
   const roleActuel = watch('role');
+  const apercu = apercuIdentifiant(watch('prenom'), watch('nom'));
 
   const { data: classesRaw = [] } = useQuery({
     queryKey: ['classes-creation'],
@@ -143,7 +163,12 @@ function ModalCreerUtilisateur({ onFermer }) {
   const classes = Array.isArray(classesRaw) ? classesRaw : (classesRaw?.classes ?? []);
 
   const mutation = useMutation({
-    mutationFn: (data) => api.post('/users', { ...data, classeId: classeId || undefined }).then((r) => r.data),
+    mutationFn: (data) => api.post('/users', {
+      ...data,
+      identifiant: data.identifiant?.trim().toLowerCase() || undefined,
+      email: data.email?.trim() || undefined,
+      classeId: classeId || undefined,
+    }).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] });
       qc.invalidateQueries({ queryKey: ['classes'] });
@@ -174,9 +199,21 @@ function ModalCreerUtilisateur({ onFermer }) {
             </div>
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Email *</label>
-            <input type="email" {...register('email', { required: true })} className="w-full border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-            {errors.email && <p className="text-xs text-red-500 mt-1">Email valide requis</p>}
+            <label className="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Identifiant</label>
+            <input
+              {...register('identifiant', { validate: (v) => !v || IDENTIFIANT_RE.test(v.trim().toLowerCase()) })}
+              autoCapitalize="none"
+              spellCheck={false}
+              placeholder={apercu ? `Automatique : ${apercu}` : 'Généré automatiquement (prenom.nom)'}
+              className="w-full border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            {errors.identifiant
+              ? <p className="text-xs text-red-500 mt-1">Minuscules, chiffres et . - _ uniquement</p>
+              : <p className="text-xs text-gray-400 mt-1">Laisser vide pour le générer automatiquement</p>}
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Email <span className="font-normal text-gray-400">(facultatif, pour les notifications)</span></label>
+            <input type="email" {...register('email')} className="w-full border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
           <div>
             <label className="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Mot de passe *</label>
@@ -246,7 +283,7 @@ function ModalCreerUtilisateur({ onFermer }) {
 function ModalModifierUtilisateur({ utilisateur: u, onFermer }) {
   const qc = useQueryClient();
   const { register, handleSubmit, formState: { errors }, watch } = useForm({
-    defaultValues: { prenom: u.prenom, nom: u.nom, email: u.email, role: u.role, motDePasse: '' },
+    defaultValues: { prenom: u.prenom, nom: u.nom, identifiant: u.identifiant, email: u.email ?? '', role: u.role, motDePasse: '' },
   });
 
   const [classeId, setClasseId] = useState(u.classe?.classe?.id ?? '');
@@ -261,7 +298,12 @@ function ModalModifierUtilisateur({ utilisateur: u, onFermer }) {
 
   const mutation = useMutation({
     mutationFn: async (data) => {
-      const payload = { prenom: data.prenom, nom: data.nom, email: data.email, role: data.role };
+      const payload = {
+        prenom: data.prenom, nom: data.nom,
+        identifiant: data.identifiant.trim().toLowerCase(),
+        email: data.email?.trim() ?? '',
+        role: data.role,
+      };
       if (data.motDePasse) payload.motDePasse = data.motDePasse;
       await api.put(`/users/${u.id}`, payload);
       if (data.role === 'ELEVE') {
@@ -299,9 +341,19 @@ function ModalModifierUtilisateur({ utilisateur: u, onFermer }) {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Email *</label>
-            <input type="email" {...register('email', { required: true })} className="w-full border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-            {errors.email && <p className="text-xs text-red-500 mt-1">Email valide requis</p>}
+            <label className="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Identifiant *</label>
+            <input
+              {...register('identifiant', { required: true, validate: (v) => IDENTIFIANT_RE.test(v.trim().toLowerCase()) })}
+              autoCapitalize="none"
+              spellCheck={false}
+              className="w-full border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            {errors.identifiant && <p className="text-xs text-red-500 mt-1">Minuscules, chiffres et . - _ uniquement</p>}
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-gray-600 dark:text-slate-400 block mb-1">Email <span className="font-normal text-gray-400">(facultatif)</span></label>
+            <input type="email" {...register('email')} className="w-full border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
 
           <div>
@@ -453,7 +505,7 @@ function ModalImportUtilisateurs({ onFermer }) {
                     {resultat.crees.map((u, i) => (
                       <div key={i} className="flex items-center gap-2 px-3 py-1.5 text-xs">
                         <span className="font-medium text-gray-700 dark:text-slate-300 flex-1">{u.prenom} {u.nom}</span>
-                        <span className="text-gray-400 truncate max-w-[130px]">{u.email}</span>
+                        <span className="font-mono text-gray-500 dark:text-slate-400 truncate max-w-[150px]">{u.identifiant}</span>
                         {u.classe
                           ? <span className="text-emerald-600 dark:text-emerald-400 font-medium whitespace-nowrap">{u.classe}</span>
                           : <span className="text-gray-300 dark:text-slate-600 italic">sans classe</span>
@@ -472,7 +524,7 @@ function ModalImportUtilisateurs({ onFermer }) {
                     {resultat.erreurs.map((e, i) => (
                       <div key={i} className="flex items-start gap-2 px-3 py-2 text-xs">
                         <span className="font-mono text-gray-400 flex-shrink-0">L.{e.ligne}</span>
-                        <span className="text-gray-500 dark:text-slate-400 truncate flex-1">{e.email}</span>
+                        <span className="text-gray-500 dark:text-slate-400 truncate flex-1">{e.identifiant}</span>
                         <span className="text-red-600 dark:text-red-400 text-right shrink-0">{e.message}</span>
                       </div>
                     ))}
@@ -528,7 +580,7 @@ function ModalImportUtilisateurs({ onFermer }) {
               </div>
 
               <p className="text-xs text-gray-400 dark:text-slate-500">
-                Colonnes : <span className="font-mono">Prénom</span>, <span className="font-mono">Nom</span>, <span className="font-mono">Email</span>, <span className="font-mono">Rôle</span>, <span className="font-mono">Classe</span>, <span className="font-mono">Mot de passe</span> — les 3 dernières sont optionnelles.
+                Colonnes : <span className="font-mono">Prénom</span>, <span className="font-mono">Nom</span>, <span className="font-mono">Identifiant</span>, <span className="font-mono">Email</span>, <span className="font-mono">Rôle</span>, <span className="font-mono">Classe</span>, <span className="font-mono">Mot de passe</span> — seuls Prénom et Nom sont obligatoires ; un identifiant vide est généré automatiquement (prenom.nom).
               </p>
 
               <div className="rounded-lg border border-gray-100 dark:border-slate-700 overflow-hidden">
@@ -612,7 +664,7 @@ function LigneUtilisateur({ u, classesDisponibles, roleEnEdition, setRoleEnEditi
           </div>
           <div>
             <p className="font-medium text-gray-900 dark:text-slate-100 text-sm leading-tight">{u.prenom} {u.nom}</p>
-            <p className="text-xs text-gray-400 dark:text-slate-500">{u.email}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 font-mono">{u.identifiant}</p>
           </div>
         </div>
       </td>
@@ -924,7 +976,7 @@ export default function Users() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher par nom, prénom, email…"
+              placeholder="Rechercher par nom, prénom, identifiant…"
               className="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>

@@ -35,7 +35,8 @@ router.get(
 router.post(
   '/',
   autoriser('ADMIN'),
-  body('email').isEmail().normalizeEmail(),
+  body('identifiant').optional({ values: 'falsy' }).trim().toLowerCase(),
+  body('email').optional({ values: 'falsy' }).isEmail().withMessage('Email invalide').normalizeEmail(),
   body('motDePasse').isLength({ min: 8 }).withMessage('8 caractères minimum'),
   body('prenom').trim().notEmpty(),
   body('nom').trim().notEmpty(),
@@ -48,7 +49,8 @@ router.put(
   '/:id',
   body('prenom').optional().trim().notEmpty(),
   body('nom').optional().trim().notEmpty(),
-  body('email').optional().isEmail().normalizeEmail(),
+  body('identifiant').optional().trim().toLowerCase().notEmpty().withMessage("L'identifiant ne peut pas être vide"),
+  body('email').optional({ values: 'falsy' }).isEmail().withMessage('Email invalide').normalizeEmail(),
   body('motDePasse').optional().isLength({ min: 8 }),
   body('role').optional().isIn(ROLES_VALIDES),
   ctrl.mettreAJour

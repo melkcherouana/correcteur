@@ -53,7 +53,8 @@ enum TypeAbsence {
 
 model Utilisateur {
   id          String   @id @default(cuid())
-  email       String   @unique
+  identifiant String   @unique // identifiant de connexion (prenom.nom)
+  email       String?  @unique // optionnel, pour les notifications
   motDePasse  String
   prenom      String
   nom         String

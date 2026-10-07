@@ -25,7 +25,7 @@ const GUIDES = [
         icon: LogIn,
         details: [
           "Rendez-vous sur l'adresse EvalPro fournie par votre établissement.",
-          "Saisissez votre identifiant (adresse e-mail) et votre mot de passe.",
+          "Saisissez votre identifiant (format prenom.nom, ex. : lucas.bernard) et votre mot de passe.",
           'Cliquez sur « Se connecter » pour accéder à votre espace personnel.',
         ],
         conseil: "En cas d'oubli de mot de passe, contactez votre enseignant ou l'administrateur.",
@@ -224,7 +224,7 @@ const GUIDES = [
         titre: 'Import en masse',
         icon: FileSpreadsheet,
         details: [
-          'Préparez votre fichier Excel selon le modèle fourni (Prénom, Nom, Email, Rôle, Classe).',
+          'Préparez votre fichier Excel selon le modèle fourni (Prénom, Nom, Identifiant, Email, Rôle, Classe) — identifiant et email facultatifs.',
           'Depuis la page « Utilisateurs », cliquez sur « Importer ».',
           "Vérifiez l'aperçu des données détectées avant de valider.",
           'Les erreurs sont signalées ligne par ligne pour correction.',

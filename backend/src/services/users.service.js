@@ -2,11 +2,12 @@ import bcrypt from 'bcryptjs';
 import * as XLSX from 'xlsx';
 import prisma from '../utils/prisma.js';
 import * as authService from './auth.service.js';
+import { genererIdentifiantUnique, verifierIdentifiantDisponible } from '../utils/identifiant.js';
 
 const SALT_ROUNDS = 12;
 
 const SELECT_PUBLIC = {
-  id: true, email: true, prenom: true, nom: true,
+  id: true, identifiant: true, email: true, prenom: true, nom: true,
   role: true, actif: true, createdAt: true, updatedAt: true,
   profil: true,
   classe: { include: { classe: { select: { id: true, nom: true, niveau: true } } } },
@@ -20,6 +21,7 @@ export const listerUtilisateurs = async ({ role, actif, search, page = 1, limite
       OR: [
         { nom: { contains: search, mode: 'insensitive' } },
         { prenom: { contains: search, mode: 'insensitive' } },
+        { identifiant: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
       ],
     }),
@@ -45,13 +47,22 @@ export const obtenirUtilisateur = async (id) => {
   return u;
 };
 
-export const creerUtilisateur = async ({ email, motDePasse, prenom, nom, role = 'ELEVE', classeId }) => {
-  const existant = await prisma.utilisateur.findUnique({ where: { email } });
-  if (existant) throw Object.assign(new Error('Email déjà utilisé'), { status: 409 });
+// L'identifiant est généré automatiquement (prenom.nom) sauf si l'admin en impose un
+export const creerUtilisateur = async ({ identifiant, email, motDePasse, prenom, nom, role = 'ELEVE', classeId }) => {
+  if (email) {
+    const existant = await prisma.utilisateur.findUnique({ where: { email } });
+    if (existant) throw Object.assign(new Error('Email déjà utilisé'), { status: 409 });
+  }
+
+  if (identifiant) {
+    await verifierIdentifiantDisponible(identifiant);
+  } else {
+    identifiant = await genererIdentifiantUnique(prenom, nom);
+  }
 
   const hash = await bcrypt.hash(motDePasse, SALT_ROUNDS);
   const user = await prisma.utilisateur.create({
-    data: { email, motDePasse: hash, prenom, nom, role },
+    data: { identifiant, email: email || null, motDePasse: hash, prenom, nom, role },
     select: { id: true },
   });
 
@@ -74,7 +85,22 @@ export const mettreAJourUtilisateur = async (id, donnees, parAdmin = false) => {
   } else {
     delete data.motDePasse;
   }
-  if (!parAdmin) delete data.role;
+  if (!parAdmin) {
+    // Seul l'admin peut changer le rôle ou l'identifiant de connexion
+    delete data.role;
+    delete data.identifiant;
+  }
+  if (data.identifiant !== undefined && data.identifiant !== ancien.identifiant) {
+    await verifierIdentifiantDisponible(data.identifiant, id);
+  }
+  // Email vidé → null (le champ est unique, une chaîne vide entrerait en conflit)
+  if (data.email !== undefined) {
+    data.email = data.email || null;
+    if (data.email && data.email !== ancien.email) {
+      const existant = await prisma.utilisateur.findUnique({ where: { email: data.email }, select: { id: true } });
+      if (existant && existant.id !== id) throw Object.assign(new Error('Email déjà utilisé'), { status: 409 });
+    }
+  }
 
   // Un utilisateur qui n'est plus ELEVE ne doit plus être inscrit dans une
   // classe en tant qu'élève (sans quoi il resterait compté dans l'effectif
@@ -158,8 +184,9 @@ export const importerEnMasse = async (buffer) => {
   const crees   = [];
   const erreurs = [];
 
-  // Détection des doublons d'email dans le fichier lui-même
+  // Détection des doublons d'email / d'identifiant dans le fichier lui-même
   const emailsDuFichier = new Set();
+  const identifiantsDuFichier = new Set();
 
   for (let i = 0; i < lignes.length; i++) {
     const l = lignes[i];
@@ -167,17 +194,21 @@ export const importerEnMasse = async (buffer) => {
 
     const prenom    = col(l, 'Prénom', 'Prenom', 'prenom', 'PRENOM');
     const nom       = col(l, 'Nom', 'nom', 'NOM');
+    const identifiantSaisi = col(l, 'Identifiant', 'identifiant', 'IDENTIFIANT').toLowerCase();
     const email     = col(l, 'Email', 'email', 'EMAIL', 'E-mail').toLowerCase();
     const role      = col(l, 'Rôle', 'Role', 'role', 'ROLE').toUpperCase() || 'ELEVE';
     const mdp       = col(l, 'Mot de passe', 'motDePasse', 'mot_de_passe', 'Password') || 'EvalPro1';
     const nomClasse = col(l, 'Classe', 'classe', 'CLASSE');
+    // Libellé de la ligne dans le rapport d'erreurs
+    const ref       = identifiantSaisi || `${prenom} ${nom}`.trim() || '—';
 
-    if (!prenom)                         { erreurs.push({ ligne: num, email: email || '—', message: 'Prénom manquant' }); continue; }
-    if (!nom)                            { erreurs.push({ ligne: num, email: email || '—', message: 'Nom manquant' }); continue; }
-    if (!email || !EMAIL_RE.test(email)) { erreurs.push({ ligne: num, email: email || '—', message: 'Email invalide' }); continue; }
-    if (emailsDuFichier.has(email))      { erreurs.push({ ligne: num, email, message: 'Email en doublon dans le fichier' }); continue; }
-    if (!ROLES_VALIDES.includes(role))   { erreurs.push({ ligne: num, email, message: `Rôle invalide : ${role}` }); continue; }
-    if (mdp.length < 8)                  { erreurs.push({ ligne: num, email, message: 'Mot de passe trop court (8 caractères min.)' }); continue; }
+    if (!prenom)                         { erreurs.push({ ligne: num, identifiant: ref, message: 'Prénom manquant' }); continue; }
+    if (!nom)                            { erreurs.push({ ligne: num, identifiant: ref, message: 'Nom manquant' }); continue; }
+    if (email && !EMAIL_RE.test(email))  { erreurs.push({ ligne: num, identifiant: ref, message: 'Email invalide' }); continue; }
+    if (email && emailsDuFichier.has(email)) { erreurs.push({ ligne: num, identifiant: ref, message: 'Email en doublon dans le fichier' }); continue; }
+    if (identifiantSaisi && identifiantsDuFichier.has(identifiantSaisi)) { erreurs.push({ ligne: num, identifiant: ref, message: 'Identifiant en doublon dans le fichier' }); continue; }
+    if (!ROLES_VALIDES.includes(role))   { erreurs.push({ ligne: num, identifiant: ref, message: `Rôle invalide : ${role}` }); continue; }
+    if (mdp.length < 8)                  { erreurs.push({ ligne: num, identifiant: ref, message: 'Mot de passe trop court (8 caractères min.)' }); continue; }
 
     // Vérification classe AVANT création du compte
     let classeId = null;
@@ -185,22 +216,23 @@ export const importerEnMasse = async (buffer) => {
       const classe = await prisma.classe.findFirst({
         where: { nom: { equals: nomClasse, mode: 'insensitive' } },
       });
-      if (!classe) { erreurs.push({ ligne: num, email, message: `Classe "${nomClasse}" introuvable` }); continue; }
+      if (!classe) { erreurs.push({ ligne: num, identifiant: ref, message: `Classe "${nomClasse}" introuvable` }); continue; }
       classeId = classe.id;
     }
 
-    emailsDuFichier.add(email);
+    if (email) emailsDuFichier.add(email);
+    if (identifiantSaisi) identifiantsDuFichier.add(identifiantSaisi);
 
     try {
-      const u = await creerUtilisateur({ email, motDePasse: mdp, prenom, nom, role });
+      const u = await creerUtilisateur({ identifiant: identifiantSaisi || undefined, email: email || undefined, motDePasse: mdp, prenom, nom, role });
       let classeNom = null;
       if (classeId) {
         await prisma.classeEleve.create({ data: { classeId, eleveId: u.id } });
         classeNom = nomClasse;
       }
-      crees.push({ id: u.id, prenom, nom, email, role, classe: classeNom });
+      crees.push({ id: u.id, prenom, nom, identifiant: u.identifiant, role, classe: classeNom });
     } catch (err) {
-      erreurs.push({ ligne: num, email, message: err.message ?? 'Erreur création' });
+      erreurs.push({ ligne: num, identifiant: ref, message: err.message ?? 'Erreur création' });
     }
   }
 
@@ -210,12 +242,13 @@ export const importerEnMasse = async (buffer) => {
 export const genererModeleExcel = () => {
   const wb = XLSX.utils.book_new();
   const donnees = [
-    { 'Prénom': 'Alice', 'Nom': 'Martin', 'Email': 'alice.martin@lycee.fr', 'Rôle': 'ELEVE',      'Classe': 'BAC PRO SN 1',  'Mot de passe': 'EvalPro1' },
-    { 'Prénom': 'Lucas', 'Nom': 'Bernard','Email': 'lucas.bernard@lycee.fr','Rôle': 'ELEVE',      'Classe': 'BAC PRO SN 1',  'Mot de passe': 'EvalPro1' },
-    { 'Prénom': 'Jean',  'Nom': 'Dupont', 'Email': 'jean.dupont@lycee.fr',  'Rôle': 'ENSEIGNANT', 'Classe': '',              'Mot de passe': 'EvalPro1' },
+    // Identifiant vide → généré automatiquement (prenom.nom) ; Email facultatif
+    { 'Prénom': 'Alice', 'Nom': 'Martin', 'Identifiant': '',              'Email': '',                     'Rôle': 'ELEVE',      'Classe': 'BAC PRO SN 1', 'Mot de passe': 'EvalPro1' },
+    { 'Prénom': 'Lucas', 'Nom': 'Bernard','Identifiant': 'lucas.bernard', 'Email': '',                     'Rôle': 'ELEVE',      'Classe': 'BAC PRO SN 1', 'Mot de passe': 'EvalPro1' },
+    { 'Prénom': 'Jean',  'Nom': 'Dupont', 'Identifiant': '',              'Email': 'jean.dupont@lycee.fr', 'Rôle': 'ENSEIGNANT', 'Classe': '',             'Mot de passe': 'EvalPro1' },
   ];
   const ws = XLSX.utils.json_to_sheet(donnees);
-  ws['!cols'] = [{ wch: 14 }, { wch: 14 }, { wch: 28 }, { wch: 12 }, { wch: 18 }, { wch: 16 }];
+  ws['!cols'] = [{ wch: 14 }, { wch: 14 }, { wch: 20 }, { wch: 28 }, { wch: 12 }, { wch: 18 }, { wch: 16 }];
   XLSX.utils.book_append_sheet(wb, ws, 'Utilisateurs');
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 };

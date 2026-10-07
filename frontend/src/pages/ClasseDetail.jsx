@@ -360,7 +360,7 @@ export default function ClasseDetail() {
                         <p className="text-sm font-medium text-gray-900 truncate">
                           {eleve.nom} {eleve.prenom}
                         </p>
-                        <p className="text-xs text-gray-400 truncate">{eleve.email}</p>
+                        <p className="text-xs text-gray-400 truncate font-mono">{eleve.identifiant}</p>
                       </div>
                     </div>
                   ))
@@ -443,7 +443,7 @@ export default function ClasseDetail() {
         );
         const filtrés = rechercheSans.trim()
           ? sansClaase.filter((u) =>
-              `${u.nom} ${u.prenom} ${u.email}`.toLowerCase().includes(rechercheSans.toLowerCase())
+              `${u.nom} ${u.prenom} ${u.identifiant}`.toLowerCase().includes(rechercheSans.toLowerCase())
             )
           : sansClaase;
 
@@ -486,7 +486,7 @@ export default function ClasseDetail() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-gray-900 truncate">{u.nom} {u.prenom}</p>
-                      <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                      <p className="text-xs text-gray-400 truncate font-mono">{u.identifiant}</p>
                     </div>
                     <button
                       onClick={() => ajouterMutation.mutate(u.id)}

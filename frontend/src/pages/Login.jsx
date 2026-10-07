@@ -8,7 +8,7 @@ export default function Login() {
   const { utilisateur, connexion } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ email: '', motDePasse: '' });
+  const [form, setForm] = useState({ identifiant: '', motDePasse: '' });
   const [visible, setVisible] = useState(false);
   const [erreur, setErreur] = useState('');
   const [chargement, setChargement] = useState(false);
@@ -25,14 +25,14 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.email || !form.motDePasse) {
+    if (!form.identifiant || !form.motDePasse) {
       setErreur('Veuillez remplir tous les champs.');
       return;
     }
     setChargement(true);
     setErreur('');
     try {
-      await connexion(form.email, form.motDePasse);
+      await connexion(form.identifiant, form.motDePasse);
       navigate('/', { replace: true });
     } catch (err) {
       setErreur(err.response?.data?.message ?? 'Identifiants invalides.');
@@ -65,19 +65,21 @@ export default function Login() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
+            {/* Identifiant */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Adresse e-mail
+              <label htmlFor="identifiant" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Identifiant
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={form.email}
+                id="identifiant"
+                name="identifiant"
+                type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={form.identifiant}
                 onChange={handleChange}
-                placeholder="prenom.nom@lycee.fr"
+                placeholder="prenom.nom"
                 className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
               />
             </div>

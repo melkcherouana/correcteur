@@ -7,7 +7,7 @@ const router = Router();
 
 router.post(
   '/register',
-  body('email').isEmail().withMessage('Email invalide').normalizeEmail(),
+  body('email').optional({ values: 'falsy' }).isEmail().withMessage('Email invalide').normalizeEmail(),
   body('motDePasse')
     .isLength({ min: 8 })
     .withMessage('Le mot de passe doit contenir au moins 8 caractères'),
@@ -18,7 +18,7 @@ router.post(
 
 router.post(
   '/login',
-  body('email').isEmail().withMessage('Email invalide').normalizeEmail(),
+  body('identifiant').trim().notEmpty().withMessage("L'identifiant est requis"),
   body('motDePasse').notEmpty().withMessage('Le mot de passe est requis'),
   authController.login
 );

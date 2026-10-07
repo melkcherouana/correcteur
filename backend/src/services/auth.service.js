@@ -2,13 +2,14 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import prisma from '../utils/prisma.js';
+import { genererIdentifiantUnique } from '../utils/identifiant.js';
 
 const SALT_ROUNDS = 12;
 const RESET_TOKEN_VALIDITE_MS = 24 * 60 * 60 * 1000;
 
 const genererToken = (u) =>
   jwt.sign(
-    { id: u.id, email: u.email, role: u.role },
+    { id: u.id, identifiant: u.identifiant, role: u.role },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
   );
@@ -17,23 +18,31 @@ const genererToken = (u) =>
 const sansMdp = ({ motDePasse: _motDePasse, ...u }) => u;
 
 export const inscrire = async ({ email, motDePasse, prenom, nom }) => {
-  const existant = await prisma.utilisateur.findUnique({ where: { email } });
-  if (existant) {
-    const err = new Error('Cet email est déjà utilisé');
-    err.status = 409;
-    throw err;
+  if (email) {
+    const existant = await prisma.utilisateur.findUnique({ where: { email } });
+    if (existant) {
+      const err = new Error('Cet email est déjà utilisé');
+      err.status = 409;
+      throw err;
+    }
   }
 
   const hash = await bcrypt.hash(motDePasse, SALT_ROUNDS);
+  const identifiant = await genererIdentifiantUnique(prenom, nom);
   const utilisateur = await prisma.utilisateur.create({
-    data: { email, motDePasse: hash, prenom, nom },
+    data: { identifiant, email: email || null, motDePasse: hash, prenom, nom },
   });
 
   return { utilisateur: sansMdp(utilisateur), token: genererToken(utilisateur) };
 };
 
-export const connecter = async ({ email, motDePasse }) => {
-  const utilisateur = await prisma.utilisateur.findUnique({ where: { email } });
+export const connecter = async ({ identifiant, motDePasse }) => {
+  const saisie = identifiant.trim().toLowerCase();
+  // Connexion par identifiant ; l'email reste accepté en secours pour les
+  // comptes qui ne connaissent pas encore leur identifiant
+  const utilisateur = saisie.includes('@')
+    ? await prisma.utilisateur.findUnique({ where: { email: saisie } })
+    : await prisma.utilisateur.findUnique({ where: { identifiant: saisie } });
 
   // Message volontairement identique pour ne pas révéler si l'email existe
   const errAuth = Object.assign(new Error('Identifiants invalides'), { status: 401 });
@@ -88,6 +97,7 @@ export const moi = async (id) => {
     where: { id },
     select: {
       id: true,
+      identifiant: true,
       email: true,
       prenom: true,
       nom: true,

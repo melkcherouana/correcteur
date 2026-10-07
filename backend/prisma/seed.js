@@ -11,9 +11,10 @@ async function main() {
   const hash = (mdp) => bcrypt.hash(mdp, 12);
 
   const admin = await prisma.utilisateur.upsert({
-    where: { email: 'admin@evalpro.fr' },
+    where: { identifiant: 'admin.evalpro' },
     update: { role: 'ADMIN', actif: true },
     create: {
+      identifiant: 'admin.evalpro',
       email:     'admin@evalpro.fr',
       motDePasse: await hash('Admin1234!'),
       prenom:    'Admin',
@@ -21,12 +22,13 @@ async function main() {
       role:      'ADMIN',
     },
   });
-  console.log(`✅ Admin       : ${admin.email}`);
+  console.log(`✅ Admin       : ${admin.identifiant}`);
 
   const enseignant = await prisma.utilisateur.upsert({
-    where: { email: 'dupont.marie@evalpro.fr' },
+    where: { identifiant: 'marie.dupont' },
     update: {},
     create: {
+      identifiant: 'marie.dupont',
       email:     'dupont.marie@evalpro.fr',
       motDePasse: await hash('Enseignant1!'),
       prenom:    'Marie',
@@ -34,7 +36,7 @@ async function main() {
       role:      'ENSEIGNANT',
     },
   });
-  console.log(`✅ Enseignant  : ${enseignant.email}`);
+  console.log(`✅ Enseignant  : ${enseignant.identifiant}`);
 
 
   // ─── Année scolaire ────────────────────────────────────────────────────────
@@ -95,9 +97,11 @@ async function main() {
   let nbEleves = 0;
   for (const ed of elevesData) {
     const eleve = await prisma.utilisateur.upsert({
-      where: { email: ed.email },
+      // Identifiant = partie locale de l'email (prenom.nom, déjà sans accents)
+      where: { identifiant: ed.email.split('@')[0] },
       update: {},
       create: {
+        identifiant: ed.email.split('@')[0],
         email:     ed.email,
         motDePasse: await hash('Eleve1234!'),
         prenom:    ed.prenom,

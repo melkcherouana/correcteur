@@ -3,7 +3,7 @@ import prisma from '../utils/prisma.js';
 const erreur = (msg, status) => Object.assign(new Error(msg), { status });
 
 const INCLUDE_PFMP = {
-  eleve: { select: { id: true, prenom: true, nom: true, email: true } },
+  eleve: { select: { id: true, prenom: true, nom: true, identifiant: true, email: true } },
   classe: { select: { id: true, nom: true, niveau: true } },
 };
 

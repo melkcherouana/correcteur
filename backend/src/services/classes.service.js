@@ -36,7 +36,7 @@ export const obtenirClasse = async (id) => {
       eleves: {
         include: {
           eleve: {
-            select: { id: true, prenom: true, nom: true, email: true },
+            select: { id: true, prenom: true, nom: true, identifiant: true, email: true },
           },
         },
       },
